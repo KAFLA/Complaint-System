@@ -10,9 +10,8 @@
 
   <ItemGroup>
     <Folder Include="Services\" />
-    <Folder Include="Models - kopiować %283%29\" />
+    <Folder Include="ViewModels\" />
     <Folder Include="Views\" />
-    <Folder Include="Models\" />
   </ItemGroup>
 
 </Project>
