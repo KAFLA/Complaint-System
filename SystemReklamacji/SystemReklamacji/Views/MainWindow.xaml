@@ -1,4 +1,4 @@
-<Window x:Class="ReklamacjeSystem.Views.MainWindow"
+ï»¿<Window x:Class="ReklamacjeSystem.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,13 +6,13 @@
         xmlns:vm="clr-namespace:ReklamacjeSystem.ViewModels"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="System Obs³ugi Reklamacji" Height="700" Width="1200"
+        Title="System ObsÅ‚ugi Reklamacji" Height="700" Width="1200"
         WindowStartupLocation="CenterScreen">
 
-    <!-- Dodaj Style Material Design do zasobów aplikacji (App.xaml) lub tutaj -->
-    <!-- W App.xaml by³oby lepiej, ale dla prostoty dodajemy tutaj na razie -->
+    <!-- Dodaj Style Material Design do zasobÃ³w aplikacji (App.xaml) lub tutaj -->
+    <!-- W App.xaml byÂ³oby lepiej, ale dla prostoty dodajemy tutaj na razie -->
     <Window.Resources>
-        <!-- Styl dla przycisków nawigacyjnych -->
+        <!-- Styl dla przyciskÃ³w nawigacyjnych -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
@@ -54,7 +54,7 @@
             <Setter Property="Padding" Value="15"/>
         </Style>
 
-        <!-- Styl dla nag³ówka User Info -->
+        <!-- Styl dla nagÂ³Ã³wka User Info -->
         <Style TargetType="TextBlock" x:Key="UserInfoHeader">
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -69,13 +69,13 @@
             <ColumnDefinition Width="200"/>
             <!-- Panel boczny -->
             <ColumnDefinition Width="*"/>
-            <!-- G³ówna treœæ -->
+            <!-- GÂ³Ã³wna treÅ“Ã¦ -->
         </Grid.ColumnDefinitions>
 
         <!-- Panel boczny / Nawigacja -->
         <StackPanel Grid.Column="0" Style="{StaticResource SideMenuPanel}">
-            <!-- Informacje o u¿ytkowniku -->
-            <TextBlock Text="Zalogowany u¿ytkownik" Style="{StaticResource UserInfoHeader}"/>
+            <!-- Informacje o uÂ¿ytkowniku -->
+            <TextBlock Text="Zalogowany uÂ¿ytkownik" Style="{StaticResource UserInfoHeader}"/>
             <TextBlock Text="{Binding CurrentUser.Username}" FontWeight="SemiBold" HorizontalAlignment="Center"/>
             <TextBlock Text="{Binding CurrentUser.Role}" HorizontalAlignment="Center"/>
 
@@ -83,8 +83,8 @@
 
             <!-- Przyciski nawigacyjne -->
             <Button Content="Reklamacje" Command="{Binding ShowComplaintsCommand}"/>
-            <Button Content="U¿ytkownicy" Command="{Binding ShowUsersCommand}"/>
-            <Button Content="Rozwi¹zania" Command="{Binding ShowSolutionsCommand}"/>
+            <Button Content="UÂ¿ytkownicy" Command="{Binding ShowUsersCommand}"/>
+            <Button Content="RozwiÂ¹zania" Command="{Binding ShowSolutionsCommand}"/>
 
             <Button Content="Wyloguj" Command="{Binding LogoutCommand}" Background="#E74C3C" Margin="0,30,0,0">
                 <Button.Template>
@@ -105,7 +105,7 @@
             </Button>
         </StackPanel>
 
-        <!-- G³ówna treœæ (ContentControl dla dynamicznych widoków) -->
+        <!-- GÂ³Ã³wna treÅ“Ã¦ (ContentControl dla dynamicznych widokÃ³w) -->
         <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}" Margin="10"/>
     </Grid>
 </Window>

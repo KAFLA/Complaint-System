@@ -16,7 +16,7 @@ namespace ReklamacjeSystem.Views
 
             // Konfiguracja stringa połączenia do bazy danych MySQL
             // Pamiętaj, aby dostosować te dane do swojej konfiguracji MySQL
-            string connectionString = "server=localhost;port=3306;database=reklamacje_db;user=root;password=twoje_haslo;";
+            string connectionString = "server=localhost;port=3306;database=complaintsystem;user=root;";
             // ZMIEŃ 'twoje_haslo' NA PRAWDZIWE HASŁO DO BAZY DANYCH!
             // W produkcyjnych aplikacjach, connection stringi nie powinny być zakodowane na stałe.
 
