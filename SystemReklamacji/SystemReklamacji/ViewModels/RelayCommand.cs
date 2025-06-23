@@ -10,6 +10,7 @@ namespace ReklamacjeSystem.ViewModels
         private readonly Predicate<object> _canExecute; // Predykat do sprawdzenia, czy akcja może być wykonana
 
         // Zdarzenie, które informuje UI o zmianie stanu możliwości wykonania komendy
+        // Domyślnie używa CommandManager.RequerySuggested do automatycznego wywoływania
         public event EventHandler CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
@@ -33,6 +34,15 @@ namespace ReklamacjeSystem.ViewModels
         public void Execute(object parameter)
         {
             _execute(parameter);
+        }
+
+        // KLUCZOWA ZMIANA: Metoda jawnie wywołująca zdarzenie CanExecuteChanged
+        // Pozwala to ViewModelom na ręczne wymuszenie ponownej oceny stanu CanExecute komendy
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
+            // Alternatywnie, jeśli nie chcemy polegać na CommandManagerze:
+            // CanExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }
