@@ -1,9 +1,110 @@
-﻿<Application x:Class="SystemReklamacji.App"
+﻿<Application x:Class="ReklamacjeSystem.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SystemReklamacji"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:ReklamacjeSystem"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             StartupUri="Views/LoginWindow.xaml">
+    <!-- Upewnij się, że LoginWindow.xaml jest uruchamiane na start -->
     <Application.Resources>
-         
+        <!-- Definicja ResourceDictionaries dla Material Design Themes -->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Globalne style dla przycisków -->
+            <Style TargetType="Button">
+                <Setter Property="Padding" Value="10,15"/>
+                <Setter Property="Margin" Value="0,10,0,0"/>
+                <Setter Property="Background" Value="#4CAF50"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#45A049"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#39803D"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Specjalny styl dla mniejszych przycisków akcji (np. w DataGrid) -->
+            <Style x:Key="SmallActionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Setter Property="Padding" Value="5,8"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="FontWeight" Value="Normal"/>
+            </Style>
+
+            <!-- Globalne style dla TextBox -->
+            <Style TargetType="TextBox">
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Margin" Value="0,5,0,5"/>
+                <Setter Property="BorderBrush" Value="#DCDCDC"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Validation.ErrorTemplate">
+                    <Setter.Value>
+                        <ControlTemplate>
+                            <StackPanel>
+                                <AdornedElementPlaceholder x:Name="adornedPlaceholder"/>
+                                <TextBlock Text="{Binding [0].ErrorContent}" Foreground="Red" FontSize="12" Margin="5,0,0,0"/>
+                            </StackPanel>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Globalne style dla PasswordBox -->
+            <Style TargetType="PasswordBox">
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Margin" Value="0,5,0,5"/>
+                <Setter Property="BorderBrush" Value="#DCDCDC"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+
+            <!-- Globalne style dla ComboBox -->
+            <Style TargetType="ComboBox">
+                <Setter Property="Padding" Value="8"/>
+                <Setter Property="Margin" Value="0,5,0,5"/>
+                <Setter Property="BorderBrush" Value="#DCDCDC"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+
+            <!-- Globalny styl dla TextBlock komunikatów (np. statusu) -->
+            <Style x:Key="StatusMessageStyle" TargetType="TextBlock">
+                <Setter Property="Margin" Value="0,10,0,0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <!-- Materiały cieni (jeśli potrzebne są specyficzne cienie Material Design) -->
+            <!-- Chociaż usunęliśmy je z LoginWindow, można je zdefiniować globalnie, jeśli będą używane gdzie indziej -->
+            <!-- <materialDesign:ShadowAssist.ShadowDepth>Depth2</materialDesign:ShadowAssist.ShadowDepth> -->
+
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

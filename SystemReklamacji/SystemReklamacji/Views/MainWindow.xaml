@@ -11,59 +11,7 @@
 
     <!-- Dodaj Style Material Design do zasobów aplikacji (App.xaml) lub tutaj -->
     <!-- W App.xaml by³oby lepiej, ale dla prostoty dodajemy tutaj na razie -->
-    <Window.Resources>
-        <!-- Styl dla przycisków nawigacyjnych -->
-        <Style TargetType="Button">
-            <Setter Property="Background" Value="#007ACC"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="10,15"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="5"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#005A9C"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#004070"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!-- Style dla TextBlock w menu -->
-        <Style TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#333333"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,0,0,5"/>
-        </Style>
-
-        <!-- Styl dla panelu bocznego -->
-        <Style TargetType="StackPanel" x:Key="SideMenuPanel">
-            <Setter Property="Background" Value="#E0E0E0"/>
-            <Setter Property="Padding" Value="15"/>
-        </Style>
-
-        <!-- Styl dla nag³ówka User Info -->
-        <Style TargetType="TextBlock" x:Key="UserInfoHeader">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="0,10,0,10"/>
-            <Setter Property="Foreground" Value="#2C3E50"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-        </Style>
-    </Window.Resources>
-
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
