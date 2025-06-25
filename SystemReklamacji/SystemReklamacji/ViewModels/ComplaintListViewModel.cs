@@ -4,50 +4,46 @@ using System.Windows.Input;
 using ReklamacjeSystem.Models;
 using ReklamacjeSystem.Repositories;
 using ReklamacjeSystem.Services;
-using System.Windows; // Do wyświetlania MessageBox
+using System.Windows;
+using ReklamacjeSystem.Views;
+using System.Linq; // Dodaj to using do używania Linq
 
 namespace ReklamacjeSystem.ViewModels
 {
     // ViewModel dla listy reklamacji
     public class ComplaintListViewModel : BaseViewModel
     {
-        private readonly ComplaintRepository _complaintRepository; // Repozytorium do zarządzania reklamacjami
-        private readonly UserRepository _userRepository; // Repozytorium do pobierania nazw użytkowników
-        private readonly PermissionService _permissionService; // Usługa do sprawdzania uprawnień
-        private readonly UserRole _currentUserRole; // Rola aktualnie zalogowanego użytkownika
+        private readonly ComplaintRepository _complaintRepository;
+        private readonly UserRepository _userRepository;
+        private readonly PermissionService _permissionService;
+        private readonly UserRole _currentUserRole;
 
         private ObservableCollection<Complaint> _complaints;
-        // Kolekcja reklamacji wyświetlanych w widoku. Używamy ObservableCollection,
-        // aby UI automatycznie aktualizowało się po dodaniu/usunięciu/zmianie elementów.
         public ObservableCollection<Complaint> Complaints
         {
             get => _complaints;
             set
             {
                 _complaints = value;
-                OnPropertyChanged(nameof(Complaints)); // Powiadamiamy UI o zmianie wartości
+                OnPropertyChanged(nameof(Complaints));
             }
         }
 
         private Complaint _selectedComplaint;
-        // Wybrana reklamacja z listy (np. z DataGrid).
         public Complaint SelectedComplaint
         {
             get => _selectedComplaint;
             set
             {
                 _selectedComplaint = value;
-                OnPropertyChanged(nameof(SelectedComplaint)); // Powiadamiamy UI o zmianie wartości
-                // Aktualizuj stan `CanExecute` komend po zmianie zaznaczenia,
-                // aby przyciski akcji włączały się lub wyłączały dynamicznie.
-                ((RelayCommand)EditComplaintCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)DeleteComplaintCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)ChangeStatusCommand).RaiseCanExecuteChanged();
-                ((RelayCommand)AssignComplaintCommand).RaiseCanExecuteChanged();
+                OnPropertyChanged(nameof(SelectedComplaint));
+                (EditComplaintCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                (DeleteComplaintCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                (ChangeStatusCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                (AssignComplaintCommand as RelayCommand)?.RaiseCanExecuteChanged();
             }
         }
 
-        // Komendy do obsługi interakcji użytkownika z widokiem
         public ICommand LoadComplaintsCommand { get; }
         public ICommand AddComplaintCommand { get; }
         public ICommand EditComplaintCommand { get; }
@@ -55,7 +51,6 @@ namespace ReklamacjeSystem.ViewModels
         public ICommand ChangeStatusCommand { get; }
         public ICommand AssignComplaintCommand { get; }
 
-        // Konstruktor ViewModelu
         public ComplaintListViewModel(ComplaintRepository complaintRepository, UserRepository userRepository, PermissionService permissionService, UserRole currentUserRole)
         {
             _complaintRepository = complaintRepository;
@@ -64,71 +59,95 @@ namespace ReklamacjeSystem.ViewModels
             _currentUserRole = currentUserRole;
             Complaints = new ObservableCollection<Complaint>();
 
-            // Inicjalizacja komend
             LoadComplaintsCommand = new RelayCommand(async obj => await LoadComplaintsAsync());
             AddComplaintCommand = new RelayCommand(obj => AddComplaint());
-            // Komenda Edytuj jest aktywna tylko, gdy coś jest wybrane i użytkownik ma uprawnienia
             EditComplaintCommand = new RelayCommand(obj => EditComplaint(), obj => SelectedComplaint != null && _permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints));
-            // Komenda Usuń jest aktywna tylko, gdy coś jest wybrane i użytkownik ma uprawnienia do usuwania
             DeleteComplaintCommand = new RelayCommand(async obj => await DeleteComplaint(), obj => SelectedComplaint != null && _permissionService.CanDeleteComplaint(_currentUserRole));
-            // Komenda Zmień Status jest aktywna, gdy coś jest wybrane i użytkownik ma uprawnienia do zmiany statusu
             ChangeStatusCommand = new RelayCommand(async obj => await ChangeStatus(obj as ComplaintStatus?), obj => SelectedComplaint != null && _permissionService.HasPermission(_currentUserRole, PermissionAction.ChangeComplaintStatus));
-            // Komenda Przypisz jest aktywna, gdy coś jest wybrane i użytkownik ma uprawnienia do przypisywania
             AssignComplaintCommand = new RelayCommand(async obj => await AssignComplaint(), obj => SelectedComplaint != null && _permissionService.CanAssignComplaint(_currentUserRole));
 
-            // Ładowanie reklamacji natychmiast po utworzeniu ViewModelu (asynchronicznie, aby nie blokować UI)
-            Task.Run(async () => await LoadComplaintsAsync());
+            // Ładowanie reklamacji natychmiast po utworzeniu ViewModelu
+            // Używamy ConfigureAwait(false), aby zapobiec przechwyceniu kontekstu synchronizacji UI na początku zadania.
+            Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false);
         }
 
         // Metoda do ładowania reklamacji z bazy danych
         public async Task LoadComplaintsAsync()
         {
-            Complaints.Clear(); // Wyczyść istniejącą listę
-            var allComplaints = await _complaintRepository.GetAllAsync(); // Pobierz wszystkie reklamacje
+            var allComplaints = await _complaintRepository.GetAllAsync(); // Pobierz wszystkie reklamacje (na wątku w tle)
+            var users = (await _userRepository.GetAllAsync()).ToDictionary(u => u.Id); // Pobierz wszystkich użytkowników do słownika dla szybszego wyszukiwania
+
+            var complaintsToDisplay = new ObservableCollection<Complaint>();
+
             foreach (var complaint in allComplaints)
             {
-                // Próba załadowania powiązanego użytkownika dla celów wyświetlania, jeśli UserId istnieje
-                if (complaint.UserId.HasValue)
+                if (complaint.UserId.HasValue && users.ContainsKey(complaint.UserId.Value))
                 {
-                    complaint.User = await _userRepository.GetByIdAsync(complaint.UserId.Value);
+                    complaint.User = users[complaint.UserId.Value]; // Przypisz obiekt użytkownika
                 }
-                Complaints.Add(complaint); // Dodaj reklamację do ObservableCollection
+                complaintsToDisplay.Add(complaint); // Dodaj reklamację do tymczasowej kolekcji
             }
+
+            // Teraz, gdy wszystkie dane są gotowe, zaktualizuj kolekcję na wątku UI
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Complaints.Clear();
+                foreach (var c in complaintsToDisplay)
+                {
+                    Complaints.Add(c);
+                }
+            });
         }
 
-        // Obsługa dodawania nowej reklamacji (na razie placeholder)
         private void AddComplaint()
         {
-            // TODO: Otwórz nowe okno/dialog dla dodawania reklamacji
-            MessageBox.Show("Funkcjonalność dodawania reklamacji zostanie zaimplementowana.", "Informacja");
+            if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.CreateComplaint))
+            {
+                MessageBox.Show("Brak uprawnień do dodawania reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            ComplaintEditWindow addWindow = new ComplaintEditWindow(_complaintRepository, _userRepository, _permissionService, _currentUserRole);
+            addWindow.ShowDialog();
+            Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false); // Odśwież listę po zamknięciu okna
         }
 
-        // Obsługa edycji wybranej reklamacji (na razie placeholder)
         private void EditComplaint()
         {
             if (SelectedComplaint != null)
             {
-                // TODO: Otwórz nowe okno/dialog dla edycji wybranej reklamacji
-                MessageBox.Show($"Funkcjonalność edycji reklamacji (ID: {SelectedComplaint.Id}) zostanie zaimplementowana.", "Informacja");
+                if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints))
+                {
+                    MessageBox.Show("Brak uprawnień do edycji reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                ComplaintEditWindow editWindow = new ComplaintEditWindow(SelectedComplaint, _complaintRepository, _userRepository, _permissionService, _currentUserRole);
+                editWindow.ShowDialog();
+                Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false); // Odśwież listę po zamknięciu okna
+            }
+            else
+            {
+                MessageBox.Show("Proszę wybrać reklamację do edycji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
-        // Obsługa usuwania wybranej reklamacji
         private async Task DeleteComplaint()
         {
             if (SelectedComplaint != null)
             {
-                // Potwierdzenie usunięcia
                 if (MessageBox.Show($"Czy na pewno chcesz usunąć reklamację '{SelectedComplaint.Title}'?", "Potwierdź usunięcie", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     try
                     {
-                        // Sprawdzenie uprawnień po stronie UI (dodatkowe zabezpieczenie, choć serwis też sprawdza)
                         if (_permissionService.CanDeleteComplaint(_currentUserRole))
                         {
-                            await _complaintRepository.DeleteAsync(SelectedComplaint.Id); // Usuń z bazy
-                            Complaints.Remove(SelectedComplaint); // Usuń z ObservableCollection
-                            SelectedComplaint = null; // Wyczyść zaznaczenie
+                            await _complaintRepository.DeleteAsync(SelectedComplaint.Id);
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                Complaints.Remove(SelectedComplaint);
+                            });
+                            SelectedComplaint = null;
                             MessageBox.Show("Reklamacja usunięta pomyślnie.", "Sukces");
                         }
                         else
@@ -148,25 +167,22 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
-        // Obsługa zmiany statusu wybranej reklamacji
         private async Task ChangeStatus(ComplaintStatus? newStatus)
         {
             if (SelectedComplaint != null && newStatus.HasValue)
             {
                 try
                 {
-                    // Walidacja uprawnień do zmiany statusu
                     if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.ChangeComplaintStatus))
                     {
                         MessageBox.Show("Brak uprawnień do zmiany statusu reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
 
-                    // Zaktualizuj status w obiekcie i w bazie danych
                     SelectedComplaint.Status = newStatus.Value;
                     await _complaintRepository.UpdateAsync(SelectedComplaint);
                     MessageBox.Show($"Status reklamacji zmieniono na: {newStatus.Value}.", "Sukces");
-                    await LoadComplaintsAsync(); // Odśwież listę, aby odzwierciedlić zmiany (np. kolory statusów)
+                    await LoadComplaintsAsync();
                 }
                 catch (Exception ex)
                 {
@@ -179,12 +195,10 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
-        // Obsługa przypisywania reklamacji (na razie placeholder)
         private async Task AssignComplaint()
         {
             if (SelectedComplaint != null)
             {
-                // TODO: Otwórz dialog do wyboru użytkownika i przypisania reklamacji
                 MessageBox.Show($"Funkcjonalność przypisywania reklamacji (ID: {SelectedComplaint.Id}) zostanie zaimplementowana.", "Informacja");
             }
             else

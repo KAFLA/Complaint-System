@@ -1,0 +1,127 @@
+﻿<UserControl x:Class="ReklamacjeSystem.Views.ComplaintListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ReklamacjeSystem.Views"
+             xmlns:vm="clr-namespace:ReklamacjeSystem.ViewModels"
+             xmlns:models="clr-namespace:ReklamacjeSystem.Models"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <!-- Styl dla DataGrid -->
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserDeleteRows" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="RowDetailsVisibilityMode" Value="Collapsed"/>
+            <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#DCDCDC"/>
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#F5F5F5"/>
+                        <Setter Property="Foreground" Value="#333333"/>
+                        <Setter Property="Padding" Value="10"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="FontSize" Value="14"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="#E0E0E0"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RowStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="White"/>
+                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="BorderBrush" Value="#EEEEEE"/>
+                        <Setter Property="Height" Value="40"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#E0F2F7"/>
+                                <Setter Property="Foreground" Value="#333333"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F5F5F5"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="CellStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Padding" Value="10,0"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="FontSize" Value="13"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Konwerter dla koloru statusu -->
+        <local:ComplaintStatusToColorConverter x:Key="StatusToColorConverter"/>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Tytuł Widoku -->
+        <TextBlock Grid.Row="0" Text="Lista Reklamacji" FontSize="24" FontWeight="Bold" Margin="0,0,0,15" Foreground="#333333"/>
+
+        <!-- DataGrid dla reklamacji -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Complaints}" 
+                  SelectedItem="{Binding SelectedComplaint, Mode=TwoWay}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="Priorytet" Binding="{Binding Priority}" Width="100"/>
+                <DataGridTextColumn Header="Zgłoszono" Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="150"/>
+                <DataGridTextColumn Header="Przypisane do" Binding="{Binding User.Username}" Width="120"/>
+                <DataGridTemplateColumn Header="Akcje" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <!-- Używamy globalnego stylu SmallActionButton, który jest zdefiniowany w App.xaml -->
+                                <Button Content="Edytuj" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.EditComplaintCommand}" 
+                                        Style="{StaticResource SmallActionButton}" Background="#007ACC" Margin="5,0"/>
+                                <Button Content="Usuń" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteComplaintCommand}" 
+                                        Style="{StaticResource SmallActionButton}" Background="#E74C3C" Margin="5,0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Panel przycisków akcji -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <!-- Używamy globalnych stylów przycisków -->
+            <Button Content="Dodaj Reklamację" Command="{Binding AddComplaintCommand}" Background="#28A745"/>
+            <Button Content="Zmień Status" Command="{Binding ChangeStatusCommand}" CommandParameter="{x:Static models:ComplaintStatus.InProgress}" Background="#FFC107" Margin="10,0,0,0"/>
+            <Button Content="Przypisz" Command="{Binding AssignComplaintCommand}" Background="#17A2B8" Margin="10,0,0,0"/>
+            <Button Content="Odśwież" Command="{Binding LoadComplaintsCommand}" Background="#6C757D" Margin="10,0,0,0"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

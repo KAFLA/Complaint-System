@@ -4,14 +4,24 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ReklamacjeSystem.ViewModels"
+        xmlns:views="clr-namespace:ReklamacjeSystem.Views"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="System Obsługi Reklamacji" Height="700" Width="1200"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
+        <!-- DataTemplate dla ComplaintListViewModel -->
+        <DataTemplate DataType="{x:Type vm:ComplaintListViewModel}">
+            <views:ComplaintListView />
+        </DataTemplate>
+
+        <!-- DataTemplate dla SolutionListViewModel -->
+        <DataTemplate DataType="{x:Type vm:SolutionListViewModel}">
+            <views:SolutionListView />
+        </DataTemplate>
+
         <!-- Styl dla panelu bocznego -->
-        <!-- Usuwamy Padding ze stylu StackPanel, bo StackPanel nie ma tej właściwości -->
         <Style TargetType="StackPanel" x:Key="SideMenuPanel">
             <Setter Property="Background" Value="#E0E0E0"/>
         </Style>
@@ -25,23 +35,24 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
-        <!-- Style dla TextBlock w menu -->
+        <!-- Styl dla TextBlock w menu -->
         <Style TargetType="TextBlock">
             <Setter Property="Foreground" Value="#333333"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Margin" Value="0,0,0,5"/>
         </Style>
+
+        <!-- Konwerter BoolToVisibilityConverter -->
+        <views:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
-            <!-- Panel boczny -->
             <ColumnDefinition Width="*"/>
-            <!-- Główna treść -->
         </Grid.ColumnDefinitions>
 
-        <!-- PANEL BOCZNY / NAWIGACJA - KLUCZOWA ZMIANA TUTAJ: OWIJAMY W BORDER -->
+        <!-- PANEL BOCZNY -->
         <Border Grid.Column="0" Background="#E0E0E0" Padding="15">
             <StackPanel>
                 <!-- Informacje o użytkowniku -->
@@ -53,9 +64,11 @@
 
                 <!-- Przyciski nawigacyjne -->
                 <Button Content="Reklamacje" Command="{Binding ShowComplaintsCommand}"/>
-                <Button Content="Użytkownicy" Command="{Binding ShowUsersCommand}"/>
+                <Button Content="Użytkownicy" Command="{Binding ShowUsersCommand}"
+                        Visibility="{Binding IsManager, Converter={StaticResource BoolToVisibilityConverter}}"/>
                 <Button Content="Rozwiązania" Command="{Binding ShowSolutionsCommand}"/>
 
+                <!-- Przycisk Wyloguj -->
                 <Button Content="Wyloguj" Command="{Binding LogoutCommand}" Background="#E74C3C" Margin="0,30,0,0">
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
@@ -76,7 +89,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Główna treść (ContentControl dla dynamicznych widoków) -->
+        <!-- GŁÓWNA TREŚĆ -->
         <ContentControl Grid.Column="1" Content="{Binding CurrentViewModel}" Margin="10"/>
     </Grid>
 </Window>

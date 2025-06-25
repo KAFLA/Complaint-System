@@ -100,7 +100,6 @@ namespace ReklamacjeSystem.ViewModels
 
             try
             {
-                // Konwersja SecureString na zwykły string dla celów uwierzytelniania
                 string plainPassword = new System.Net.NetworkCredential(string.Empty, Password).Password;
 
                 User loggedInUser = await _authService.Login(Username, plainPassword);
@@ -160,18 +159,6 @@ namespace ReklamacjeSystem.ViewModels
             {
                 StatusMessage = $"Wystąpił błąd podczas rejestracji: {ex.Message}";
             }
-        }
-    }
-
-    // Prosta klasa bazowa dla ViewModeli, implementująca INotifyPropertyChanged
-    // To jest kluczowe dla działania Data Bindingu w WPF
-    public class BaseViewModel : System.ComponentModel.INotifyPropertyChanged
-    {
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
     }
 }

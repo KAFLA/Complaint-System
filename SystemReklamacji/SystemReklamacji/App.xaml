@@ -7,11 +7,15 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- BundledTheme zawiera style bazowe oraz kolory -->
+                <!-- Wczytaj domyślny temat Material Design (Jasny, z fioletowym głównym kolorem i limonkowym wtórnym) -->
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+
+                <!-- Wczytaj podstawowe zasoby i style kontrolne Material Design -->
+
+
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Styl globalny dla przycisków -->
+            <!-- Globalne style dla przycisków -->
             <Style TargetType="Button">
                 <Setter Property="Padding" Value="10,15"/>
                 <Setter Property="Margin" Value="0,10,0,0"/>
@@ -21,7 +25,6 @@
                 <Setter Property="FontSize" Value="16"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -41,7 +44,7 @@
                 </Setter>
             </Style>
 
-            <!-- Mniejszy styl przycisku (np. w DataGrid) -->
+            <!-- Specjalny styl dla mniejszych przycisków akcji (np. w DataGrid) -->
             <Style x:Key="SmallActionButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Padding" Value="5,8"/>
                 <Setter Property="FontSize" Value="13"/>
@@ -49,7 +52,7 @@
                 <Setter Property="FontWeight" Value="Normal"/>
             </Style>
 
-            <!-- Styl globalny dla TextBox -->
+            <!-- Globalne style dla TextBox -->
             <Style TargetType="TextBox">
                 <Setter Property="Padding" Value="8"/>
                 <Setter Property="Margin" Value="0,5,0,5"/>
@@ -70,7 +73,7 @@
                 </Setter>
             </Style>
 
-            <!-- Styl dla PasswordBox -->
+            <!-- Globalne style dla PasswordBox -->
             <Style TargetType="PasswordBox">
                 <Setter Property="Padding" Value="8"/>
                 <Setter Property="Margin" Value="0,5,0,5"/>
@@ -81,7 +84,7 @@
                 <Setter Property="FontSize" Value="14"/>
             </Style>
 
-            <!-- Styl dla ComboBox -->
+            <!-- Globalne style dla ComboBox -->
             <Style TargetType="ComboBox">
                 <Setter Property="Padding" Value="8"/>
                 <Setter Property="Margin" Value="0,5,0,5"/>
@@ -92,7 +95,7 @@
                 <Setter Property="FontSize" Value="14"/>
             </Style>
 
-            <!-- Styl komunikatu/statusu -->
+            <!-- Globalny styl dla TextBlock komunikatów (np. statusu) -->
             <Style x:Key="StatusMessageStyle" TargetType="TextBlock">
                 <Setter Property="Margin" Value="0,10,0,0"/>
                 <Setter Property="FontSize" Value="14"/>
