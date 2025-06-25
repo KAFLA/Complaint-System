@@ -22,8 +22,6 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
-        // SecureString do bezpiecznego przechowywania hasła
-        // W XAML będziemy używać PasswordBox i dołączonej właściwości, by to zadziałało
         private SecureString _password;
         public SecureString Password
         {
@@ -76,6 +74,10 @@ namespace ReklamacjeSystem.ViewModels
 
         private readonly IAuthService _authService;
 
+        // WŁAŚCIWOŚĆ: Akcja do zamknięcia okna logowania
+        public Action CloseAction { get; set; }
+
+
         // Konstruktor LoginViewModel
         public LoginViewModel(IAuthService authService)
         {
@@ -99,9 +101,6 @@ namespace ReklamacjeSystem.ViewModels
             try
             {
                 // Konwersja SecureString na zwykły string dla celów uwierzytelniania
-                // UWAGA: W realnej aplikacji hasło powinno być używane tylko w SecureString
-                // i przekazywane bezpiecznie do AuthService, który powinien przyjmować SecureString.
-                // Dla uproszczenia przykładu konwertujemy tutaj.
                 string plainPassword = new System.Net.NetworkCredential(string.Empty, Password).Password;
 
                 User loggedInUser = await _authService.Login(Username, plainPassword);
@@ -109,12 +108,13 @@ namespace ReklamacjeSystem.ViewModels
                 if (loggedInUser != null)
                 {
                     StatusMessage = $"Zalogowano pomyślnie jako {loggedInUser.Username} ({loggedInUser.Role})!";
-                    // Przejście do głównego okna aplikacji
-                    // Potrzebujemy dostępu do okna, aby je zamknąć i otworzyć nowe
-                    Application.Current.MainWindow.Hide();
+
+                    // Stwórz i pokaż główne okno aplikacji
                     MainWindow main = new MainWindow(loggedInUser); // Przekaż zalogowanego użytkownika
                     main.Show();
-                    Application.Current.MainWindow.Close(); // Zamknij okno logowania
+
+                    // Bezpośrednie użycie CloseAction do zamknięcia okna logowania
+                    CloseAction?.Invoke(); // Użyj operatora ?. na wypadek, gdyby CloseAction było null (choć nie powinno)
                 }
                 else
                 {
