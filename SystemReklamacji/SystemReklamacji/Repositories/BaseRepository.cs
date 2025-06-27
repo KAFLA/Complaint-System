@@ -78,9 +78,12 @@ namespace ReklamacjeSystem.Repositories
             using (var connection = GetConnection())
             {
                 await connection.OpenAsync();
-                // Poprawione pobieranie właściwości - pomijamy właściwości nawigacyjne i te bez getterów/setterów
+                // Poprawione pobieranie właściwości: Ignorujemy 'Id' (auto-increment),
+                // oraz właściwości nawigacyjne. Uwzględniamy tylko właściwości, które mają publiczny getter i setter,
+                // i które są typami wartościowymi, stringami LUB ENUMAMI.
                 var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                          .Where(p => p.Name != "Id" && p.CanRead && p.CanWrite && !p.PropertyType.IsClass || p.PropertyType == typeof(string));
+                                          .Where(p => p.Name != "Id" && p.CanRead && p.CanWrite &&
+                                                      (!p.PropertyType.IsClass || p.PropertyType == typeof(string) || p.PropertyType.IsEnum)); // Dodano || p.PropertyType.IsEnum
 
                 var columns = string.Join(", ", properties.Select(p => p.Name));
                 var parameters = string.Join(", ", properties.Select(p => $"@{p.Name}"));
@@ -90,7 +93,12 @@ namespace ReklamacjeSystem.Repositories
                 {
                     foreach (var prop in properties)
                     {
-                        var value = prop.GetValue(entity);
+                        object value = prop.GetValue(entity);
+                        // Specjalna obsługa dla enumów: konwertuj na stringa, aby zapisać w bazie danych
+                        if (prop.PropertyType.IsEnum)
+                        {
+                            value = value.ToString();
+                        }
                         command.Parameters.AddWithValue($"@{prop.Name}", value ?? DBNull.Value);
                     }
                     await command.ExecuteNonQueryAsync();
@@ -104,9 +112,10 @@ namespace ReklamacjeSystem.Repositories
             using (var connection = GetConnection())
             {
                 await connection.OpenAsync();
-                // Poprawione pobieranie właściwości
+                // Poprawione pobieranie właściwości: Podobnie jak w AddAsync, uwzględniamy enums.
                 var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                          .Where(p => p.Name != "Id" && p.CanRead && p.CanWrite && !p.PropertyType.IsClass || p.PropertyType == typeof(string));
+                                          .Where(p => p.Name != "Id" && p.CanRead && p.CanWrite &&
+                                                      (!p.PropertyType.IsClass || p.PropertyType == typeof(string) || p.PropertyType.IsEnum)); // Dodano || p.PropertyType.IsEnum
 
                 var setClauses = string.Join(", ", properties.Select(p => $"{p.Name} = @{p.Name}"));
 
@@ -115,7 +124,12 @@ namespace ReklamacjeSystem.Repositories
                 {
                     foreach (var prop in properties)
                     {
-                        var value = prop.GetValue(entity);
+                        object value = prop.GetValue(entity);
+                        // Specjalna obsługa dla enumów: konwertuj na stringa
+                        if (prop.PropertyType.IsEnum)
+                        {
+                            value = value.ToString();
+                        }
                         command.Parameters.AddWithValue($"@{prop.Name}", value ?? DBNull.Value);
                     }
                     var idProperty = typeof(T).GetProperty("Id");

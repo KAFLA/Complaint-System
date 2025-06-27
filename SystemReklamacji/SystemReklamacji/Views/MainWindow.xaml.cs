@@ -15,9 +15,10 @@ namespace ReklamacjeSystem.Views
             InitializeComponent();
 
             // Konfiguracja stringa połączenia do bazy danych MySQL
-            // Pamiętaj, aby dostosować te dane do swojej konfiguracji MySQL
-            string connectionString = "server=127.0.0.1;port=3306;database=complaintsystem;user=reklamacje_user;password=zaq1@WSX;SslMode=None;";
-            // ZMIEŃ 'twoje_haslo' NA PRAWDZIWE HASŁO DO BAZY DANYCH!
+            // WAŻNE: ZMIEŃ 'twoje_haslo' NA PRAWDZIWE HASŁO DO UŻYTKOWNIKA BAZY DANYCH!
+            string connectionString = "server=localhost;port=3306;database=reklamacje_db;user=kaflisz;password=zaq1@WSX;SslMode=None;";
+            // Jeśli używasz użytkownika 'reklamacje_user' stworzonego skryptem SQL, hasło to 'zaq1@WSX':
+            // string connectionString = "server=localhost;port=3306;database=reklamacje_db;user=reklamacje_user;password=zaq1@WSX;SslMode=None;"; 
 
             // Ustawienie DataContext dla tego okna na nową instancję MainViewModel
             // Przekazujemy zalogowanego użytkownika i connectionString

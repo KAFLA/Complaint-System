@@ -1,16 +1,18 @@
 ﻿using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Threading.Tasks;
 using ReklamacjeSystem.Models;
 
 namespace ReklamacjeSystem.Repositories
 {
+    // Repozytorium do zarządzania encjami Complaint, dziedziczące po BaseRepository
     public class ComplaintRepository : BaseRepository<Complaint>
     {
+        // Konstruktor przyjmujący string połączenia, przekazuje go do klasy bazowej
         public ComplaintRepository(string connectionString) : base(connectionString, "Complaints") { }
 
+        // Implementacja abstrakcyjnej metody MapToEntity z klasy bazowej
+        // Mapuje dane z MySqlDataReader na obiekt typu Complaint
         protected override Complaint MapToEntity(MySqlDataReader reader)
         {
             return new Complaint
@@ -18,59 +20,13 @@ namespace ReklamacjeSystem.Repositories
                 Id = reader.GetInt32("Id"),
                 Title = reader.GetString("Title"),
                 Description = reader.IsDBNull("Description") ? null : reader.GetString("Description"),
-                Status = (ComplaintStatus)Enum.Parse(typeof(ComplaintStatus), reader.GetString("Status")),
-                Priority = (ComplaintPriority)Enum.Parse(typeof(ComplaintPriority), reader.GetString("Priority")),
+                // KLUCZOWA ZMIANA: Użyj Enum.Parse z ignoreCase: true dla Status i Priority
+                Status = (ComplaintStatus)Enum.Parse(typeof(ComplaintStatus), reader.GetString("Status"), true), // 'true' ignoruje wielkość liter
+                Priority = (ComplaintPriority)Enum.Parse(typeof(ComplaintPriority), reader.GetString("Priority"), true), // 'true' ignoruje wielkość liter
                 CreatedAt = reader.GetDateTime("CreatedAt"),
+                // UserId może być NULL w bazie danych, więc sprawdzamy IsDBNull
                 UserId = reader.IsDBNull("UserId") ? (int?)null : reader.GetInt32("UserId")
             };
-        }
-
-        // Metoda specjalistyczna: Pobiera reklamacje po statusie
-        public async Task<IEnumerable<Complaint>> GetComplaintsByStatusAsync(ComplaintStatus status)
-        {
-            var complaints = new List<Complaint>();
-            using (var connection = GetConnection())
-            {
-                await connection.OpenAsync();
-                var query = $"SELECT * FROM {_tableName} WHERE Status = @Status";
-                using (var command = new MySqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@Status", status.ToString());
-                    // KLUCZOWA ZMIANA: Jawne rzutowanie na MySqlDataReader
-                    using (var reader = (MySqlDataReader)await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            complaints.Add(MapToEntity(reader));
-                        }
-                    }
-                }
-            }
-            return complaints;
-        }
-
-        // Metoda specjalistyczna: Pobiera reklamacje przypisane do konkretnego użytkownika
-        public async Task<IEnumerable<Complaint>> GetComplaintsByUserIdAsync(int userId)
-        {
-            var complaints = new List<Complaint>();
-            using (var connection = GetConnection())
-            {
-                await connection.OpenAsync();
-                var query = $"SELECT * FROM {_tableName} WHERE UserId = @UserId";
-                using (var command = new MySqlCommand(query, connection))
-                {
-                    command.Parameters.AddWithValue("@UserId", userId);
-                    // KLUCZOWA ZMIANA: Jawne rzutowanie na MySqlDataReader
-                    using (var reader = (MySqlDataReader)await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            complaints.Add(MapToEntity(reader));
-                        }
-                    }
-                }
-            }
-            return complaints;
         }
     }
 }

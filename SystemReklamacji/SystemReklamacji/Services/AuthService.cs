@@ -1,22 +1,20 @@
 ﻿using ReklamacjeSystem.Models;
 using ReklamacjeSystem.Repositories;
 using System.Threading.Tasks;
-using BCrypt.Net; // Do hashowania haseł
+using BCrypt.Net;
+using System.Diagnostics; // Dodaj to dla Debug.WriteLine
 
 namespace ReklamacjeSystem.Services
 {
-    // Implementacja usługi uwierzytelniania
     public class AuthService : IAuthService
     {
-        private readonly UserRepository _userRepository; // Repozytorium do zarządzania użytkownikami
+        private readonly UserRepository _userRepository;
 
-        // Konstruktor przyjmujący instancję UserRepository
         public AuthService(UserRepository userRepository)
         {
             _userRepository = userRepository;
         }
 
-        // Metoda rejestracji użytkownika
         public async Task<User> Register(string username, string email, string password, UserRole role)
         {
             // Sprawdź, czy użytkownik o podanej nazwie lub emailu już istnieje
@@ -35,24 +33,25 @@ namespace ReklamacjeSystem.Services
 
             // Zahashuj hasło przed zapisaniem do bazy danych
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+            Debug.WriteLine($"AuthService - Register: Registering user '{username}'. Hashed password: '{passwordHash}'"); // Debug
 
-            // Stwórz nowego użytkownika
             var newUser = new User
             {
                 Username = username,
                 Email = email,
                 PasswordHash = passwordHash,
                 Role = role,
-                CreatedAt = System.DateTime.Now
+                CreatedAt = System.DateTime.Now // Upewnij się, że DateTime.Now jest obsługiwane przez MySQL
             };
 
-            await _userRepository.AddAsync(newUser); // Dodaj użytkownika do bazy danych
+            await _userRepository.AddAsync(newUser);
+            Debug.WriteLine($"AuthService - Register: User '{username}' added to database successfully."); // Debug
             return newUser;
         }
 
-        // Metoda logowania użytkownika
         public async Task<User> Login(string username, string password)
         {
+            Debug.WriteLine($"AuthService - Login: Attempting login for username: '{username}'"); // Debug
             var users = await _userRepository.GetAllAsync();
             User user = null;
             foreach (var u in users)
@@ -66,17 +65,29 @@ namespace ReklamacjeSystem.Services
 
             if (user == null)
             {
-                return null; // Użytkownik nie znaleziony
+                Debug.WriteLine($"AuthService - Login: User '{username}' not found in database."); // Debug
+                return null;
             }
 
-            // Zweryfikuj hasło
-            if (BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            Debug.WriteLine($"AuthService - Login: User '{username}' found. Stored hash: '{user.PasswordHash}'. Attempting to verify provided password."); // Debug
+
+            try
             {
-                return user; // Logowanie pomyślne
+                if (BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                {
+                    Debug.WriteLine($"AuthService - Login: Login successful for user '{username}'. Password matched."); // Debug
+                    return user;
+                }
+                else
+                {
+                    Debug.WriteLine($"AuthService - Login: Incorrect password for user '{username}'. Provided plain password (for debug): '{password}'. Stored hash: '{user.PasswordHash}'"); // Debug
+                    return null;
+                }
             }
-            else
+            catch (System.Exception ex)
             {
-                return null; // Niepoprawne hasło
+                Debug.WriteLine($"AuthService - Login: BCrypt verification error for user '{username}': {ex.Message}. StackTrace: {ex.StackTrace}"); // Debug
+                return null;
             }
         }
     }

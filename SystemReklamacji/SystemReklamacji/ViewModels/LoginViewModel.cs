@@ -3,13 +3,14 @@ using System.Security;
 using System.Windows;
 using System.Windows.Input;
 using ReklamacjeSystem.Models;
-using ReklamacjeSystem.Services; // Potrzebne do AuthService
-using ReklamacjeSystem.Views; // Potrzebne do MainWindow
+using ReklamacjeSystem.Services;
+using ReklamacjeSystem.Views;
+using System.Diagnostics; // Dodaj to dla Debug.WriteLine
+using System.Threading.Tasks; // Dodaj to dla Task
 
 namespace ReklamacjeSystem.ViewModels
 {
-    // ViewModel dla okna logowania/rejestracji
-    public class LoginViewModel : BaseViewModel // BaseViewModel zapewni INotifyPropertyChanged
+    public class LoginViewModel : BaseViewModel
     {
         private string _username;
         public string Username
@@ -55,7 +56,6 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
-        // Kolekcja dostępnych ról dla ComboBoxa w rejestracji
         public UserRole[] AvailableRoles { get; } = (UserRole[])Enum.GetValues(typeof(UserRole));
 
         private string _statusMessage;
@@ -66,30 +66,24 @@ namespace ReklamacjeSystem.ViewModels
             {
                 _statusMessage = value;
                 OnPropertyChanged(nameof(StatusMessage));
+                Debug.WriteLine($"StatusMessage: {value}"); // Debug
             }
         }
 
         public ICommand LoginCommand { get; }
         public ICommand RegisterCommand { get; }
+        public Action CloseAction { get; set; } // Akcja do zamknięcia okna
 
         private readonly IAuthService _authService;
 
-        // WŁAŚCIWOŚĆ: Akcja do zamknięcia okna logowania
-        public Action CloseAction { get; set; }
-
-
-        // Konstruktor LoginViewModel
         public LoginViewModel(IAuthService authService)
         {
             _authService = authService;
             LoginCommand = new RelayCommand(async (param) => await Login(param));
             RegisterCommand = new RelayCommand(async (param) => await Register(param));
-
-            // Domyślna rola dla rejestracji (np. Employee)
             SelectedRole = UserRole.Employee;
         }
 
-        // Metoda do obsługi logowania
         private async Task Login(object parameter)
         {
             if (string.IsNullOrWhiteSpace(Username) || Password == null || Password.Length == 0)
@@ -101,6 +95,7 @@ namespace ReklamacjeSystem.ViewModels
             try
             {
                 string plainPassword = new System.Net.NetworkCredential(string.Empty, Password).Password;
+                Debug.WriteLine($"LoginViewModel: Attempting login for '{Username}' with plain password (from SecureString): '{plainPassword}'"); // Debug
 
                 User loggedInUser = await _authService.Login(Username, plainPassword);
 
@@ -108,12 +103,14 @@ namespace ReklamacjeSystem.ViewModels
                 {
                     StatusMessage = $"Zalogowano pomyślnie jako {loggedInUser.Username} ({loggedInUser.Role})!";
 
-                    // Stwórz i pokaż główne okno aplikacji
-                    MainWindow main = new MainWindow(loggedInUser); // Przekaż zalogowanego użytkownika
-                    main.Show();
-
-                    // Bezpośrednie użycie CloseAction do zamknięcia okna logowania
-                    CloseAction?.Invoke(); // Użyj operatora ?. na wypadek, gdyby CloseAction było null (choć nie powinno)
+                    // Zamiast Application.Current.MainWindow.Hide/Close, używamy CloseAction
+                    // Upewnij się, że LoginWindow.xaml.cs ustawia viewModel.CloseAction = () => this.Close();
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        MainWindow main = new MainWindow(loggedInUser); // Utwórz nowe główne okno
+                        main.Show(); // Pokaż główne okno
+                        CloseAction?.Invoke(); // Zamknij okno logowania
+                    });
                 }
                 else
                 {
@@ -123,10 +120,10 @@ namespace ReklamacjeSystem.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Wystąpił błąd podczas logowania: {ex.Message}";
+                Debug.WriteLine($"Login exception in LoginViewModel for user '{Username}': {ex.Message}"); // Debug
             }
         }
 
-        // Metoda do obsługi rejestracji
         private async Task Register(object parameter)
         {
             if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Email) || Password == null || Password.Length == 0)
@@ -138,13 +135,17 @@ namespace ReklamacjeSystem.ViewModels
             try
             {
                 string plainPassword = new System.Net.NetworkCredential(string.Empty, Password).Password;
+                Debug.WriteLine($"LoginViewModel: Attempting registration for '{Username}' with email '{Email}' and plain password: '{plainPassword}'"); // Debug
 
                 User registeredUser = await _authService.Register(Username, Email, plainPassword, SelectedRole);
 
                 if (registeredUser != null)
                 {
                     StatusMessage = $"Użytkownik {registeredUser.Username} ({registeredUser.Role}) zarejestrowany pomyślnie!";
-                    // Można automatycznie zalogować lub wyświetlić komunikat i poprosić o zalogowanie
+                    // Można opcjonalnie wyczyścić pola formularza tutaj
+                    Username = string.Empty;
+                    Email = string.Empty;
+                    Password = new SecureString(); // Wyczyść SecureString
                 }
                 else
                 {
@@ -154,10 +155,12 @@ namespace ReklamacjeSystem.ViewModels
             catch (ArgumentException ex)
             {
                 StatusMessage = $"Błąd rejestracji: {ex.Message}";
+                Debug.WriteLine($"Registration ArgumentException: {ex.Message}"); // Debug
             }
             catch (Exception ex)
             {
                 StatusMessage = $"Wystąpił błąd podczas rejestracji: {ex.Message}";
+                Debug.WriteLine($"Registration Exception: {ex.Message}"); // Debug
             }
         }
     }

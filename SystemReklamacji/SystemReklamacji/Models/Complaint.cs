@@ -15,7 +15,7 @@ namespace ReklamacjeSystem.Models
         Low,
         Medium,
         High,
-        Urgent
+        Critical
     }
 
     public class Complaint
