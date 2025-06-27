@@ -9,8 +9,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
+    <!-- DataGrid Style -->
     <UserControl.Resources>
-        <!-- Styl dla DataGrid -->
         <Style TargetType="DataGrid">
             <Setter Property="AutoGenerateColumns" Value="False"/>
             <Setter Property="CanUserAddRows" Value="False"/>
@@ -23,6 +23,8 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="#DCDCDC"/>
             <Setter Property="Background" Value="White"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Visible"/>
             <Setter Property="ColumnHeaderStyle">
                 <Setter.Value>
                     <Style TargetType="DataGridColumnHeader">
@@ -68,7 +70,7 @@
             </Setter>
         </Style>
 
-        <!-- Konwerter dla koloru statusu -->
+        <!-- Converter for status color -->
         <local:ComplaintStatusToColorConverter x:Key="StatusToColorConverter"/>
     </UserControl.Resources>
 
@@ -79,15 +81,19 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Tytuł Widoku -->
-        <TextBlock Grid.Row="0" Text="Lista Reklamacji" FontSize="24" FontWeight="Bold" Margin="0,0,0,15" Foreground="#333333"/>
+        <!-- View Title -->
+        <TextBlock Grid.Row="0" Text="Complaint List" FontSize="24" FontWeight="Bold" Margin="0,0,0,15" Foreground="#333333"/>
 
-        <!-- DataGrid dla reklamacji -->
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Complaints}" 
-                  SelectedItem="{Binding SelectedComplaint, Mode=TwoWay}">
+        <!-- DataGrid for complaints -->
+        <DataGrid Grid.Row="1" 
+                  ItemsSource="{Binding Complaints}" 
+                  SelectedItem="{Binding SelectedComplaint, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  ScrollViewer.HorizontalScrollBarVisibility="Visible">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*"/>
+                <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="300"/>
                 <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120">
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="TextBlock">
@@ -96,17 +102,18 @@
                         </Style>
                     </DataGridTextColumn.ElementStyle>
                 </DataGridTextColumn>
-                <DataGridTextColumn Header="Priorytet" Binding="{Binding Priority}" Width="100"/>
-                <DataGridTextColumn Header="Zgłoszono" Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="150"/>
-                <DataGridTextColumn Header="Przypisane do" Binding="{Binding User.Username}" Width="120"/>
-                <DataGridTemplateColumn Header="Akcje" Width="Auto">
+                <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="100"/>
+                <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="150"/>
+                <DataGridTextColumn Header="Assigned To" Binding="{Binding User.Username}" Width="150"/>
+                <DataGridTemplateColumn Header="Actions" Width="180">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <!-- Używamy globalnego stylu SmallActionButton, który jest zdefiniowany w App.xaml -->
-                                <Button Content="Edytuj" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.EditComplaintCommand}" 
+                                <Button Content="View/Edit" 
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ViewEditComplaintCommand}" 
                                         Style="{StaticResource SmallActionButton}" Background="#007ACC" Margin="5,0"/>
-                                <Button Content="Usuń" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteComplaintCommand}" 
+                                <Button Content="Delete" 
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteComplaintCommand}" 
                                         Style="{StaticResource SmallActionButton}" Background="#E74C3C" Margin="5,0"/>
                             </StackPanel>
                         </DataTemplate>
@@ -115,13 +122,12 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Panel przycisków akcji -->
+        <!-- Action Buttons Panel -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <!-- Używamy globalnych stylów przycisków -->
-            <Button Content="Dodaj Reklamację" Command="{Binding AddComplaintCommand}" Background="#28A745"/>
-            <Button Content="Zmień Status" Command="{Binding ChangeStatusCommand}" CommandParameter="{x:Static models:ComplaintStatus.InProgress}" Background="#FFC107" Margin="10,0,0,0"/>
-            <Button Content="Przypisz" Command="{Binding AssignComplaintCommand}" Background="#17A2B8" Margin="10,0,0,0"/>
-            <Button Content="Odśwież" Command="{Binding LoadComplaintsCommand}" Background="#6C757D" Margin="10,0,0,0"/>
+            <Button Content="Add Complaint" Command="{Binding AddComplaintCommand}" Background="#28A745"/>
+            <Button Content="Change Status" Command="{Binding ChangeStatusCommand}" CommandParameter="{x:Static models:ComplaintStatus.InProgress}" Background="#FFC107" Margin="10,0,0,0"/>
+            <Button Content="Assign" Command="{Binding AssignComplaintCommand}" Background="#17A2B8" Margin="10,0,0,0"/>
+            <Button Content="Refresh" Command="{Binding LoadComplaintsCommand}" Background="#6C757D" Margin="10,0,0,0"/>
         </StackPanel>
     </Grid>
 </UserControl>

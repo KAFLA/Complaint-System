@@ -6,11 +6,12 @@ using ReklamacjeSystem.Repositories;
 using ReklamacjeSystem.Services;
 using System.Windows;
 using ReklamacjeSystem.Views;
-using System.Linq; // Dodaj to using do używania Linq
+using System.Linq;
+using System;
 
 namespace ReklamacjeSystem.ViewModels
 {
-    // ViewModel dla listy reklamacji
+    // ViewModel for the list of complaints
     public class ComplaintListViewModel : BaseViewModel
     {
         private readonly ComplaintRepository _complaintRepository;
@@ -37,16 +38,17 @@ namespace ReklamacjeSystem.ViewModels
             {
                 _selectedComplaint = value;
                 OnPropertyChanged(nameof(SelectedComplaint));
-                (EditComplaintCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                (DeleteComplaintCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                (ChangeStatusCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                (AssignComplaintCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                // Change command name to reflect the new "View/Edit" functionality
+                ((RelayCommand)ViewEditComplaintCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)DeleteComplaintCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)ChangeStatusCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)AssignComplaintCommand)?.RaiseCanExecuteChanged();
             }
         }
 
         public ICommand LoadComplaintsCommand { get; }
         public ICommand AddComplaintCommand { get; }
-        public ICommand EditComplaintCommand { get; }
+        public ICommand ViewEditComplaintCommand { get; } // New command name
         public ICommand DeleteComplaintCommand { get; }
         public ICommand ChangeStatusCommand { get; }
         public ICommand AssignComplaintCommand { get; }
@@ -61,34 +63,30 @@ namespace ReklamacjeSystem.ViewModels
 
             LoadComplaintsCommand = new RelayCommand(async obj => await LoadComplaintsAsync());
             AddComplaintCommand = new RelayCommand(obj => AddComplaint());
-            EditComplaintCommand = new RelayCommand(obj => EditComplaint(), obj => SelectedComplaint != null && _permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints));
+            // Initialize new command: opens edit window in view mode for existing complaints
+            ViewEditComplaintCommand = new RelayCommand(obj => ViewEditComplaint(), obj => SelectedComplaint != null);
             DeleteComplaintCommand = new RelayCommand(async obj => await DeleteComplaint(), obj => SelectedComplaint != null && _permissionService.CanDeleteComplaint(_currentUserRole));
             ChangeStatusCommand = new RelayCommand(async obj => await ChangeStatus(obj as ComplaintStatus?), obj => SelectedComplaint != null && _permissionService.HasPermission(_currentUserRole, PermissionAction.ChangeComplaintStatus));
             AssignComplaintCommand = new RelayCommand(async obj => await AssignComplaint(), obj => SelectedComplaint != null && _permissionService.CanAssignComplaint(_currentUserRole));
 
-            // Ładowanie reklamacji natychmiast po utworzeniu ViewModelu
-            // Używamy ConfigureAwait(false), aby zapobiec przechwyceniu kontekstu synchronizacji UI na początku zadania.
             Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false);
         }
 
-        // Metoda do ładowania reklamacji z bazy danych
         public async Task LoadComplaintsAsync()
         {
-            var allComplaints = await _complaintRepository.GetAllAsync(); // Pobierz wszystkie reklamacje (na wątku w tle)
-            var users = (await _userRepository.GetAllAsync()).ToDictionary(u => u.Id); // Pobierz wszystkich użytkowników do słownika dla szybszego wyszukiwania
+            var allComplaints = await _complaintRepository.GetAllAsync();
+            var users = (await _userRepository.GetAllAsync()).ToDictionary(u => u.Id);
 
             var complaintsToDisplay = new ObservableCollection<Complaint>();
-
             foreach (var complaint in allComplaints)
             {
                 if (complaint.UserId.HasValue && users.ContainsKey(complaint.UserId.Value))
                 {
-                    complaint.User = users[complaint.UserId.Value]; // Przypisz obiekt użytkownika
+                    complaint.User = users[complaint.UserId.Value];
                 }
-                complaintsToDisplay.Add(complaint); // Dodaj reklamację do tymczasowej kolekcji
+                complaintsToDisplay.Add(complaint);
             }
 
-            // Teraz, gdy wszystkie dane są gotowe, zaktualizuj kolekcję na wątku UI
             Application.Current.Dispatcher.Invoke(() =>
             {
                 Complaints.Clear();
@@ -99,44 +97,48 @@ namespace ReklamacjeSystem.ViewModels
             });
         }
 
+        // Handles adding a new complaint - opens window in edit mode (new complaint)
         private void AddComplaint()
         {
             if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.CreateComplaint))
             {
-                MessageBox.Show("Brak uprawnień do dodawania reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("No permission to add complaints.", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
+            // Open the complaint add window. Constructor for new complaint will set IsEditMode = true by default.
             ComplaintEditWindow addWindow = new ComplaintEditWindow(_complaintRepository, _userRepository, _permissionService, _currentUserRole);
             addWindow.ShowDialog();
-            Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false); // Odśwież listę po zamknięciu okna
+
+            Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false);
         }
 
-        private void EditComplaint()
+        // Handles viewing/editing a selected complaint - opens window in view mode
+        private void ViewEditComplaint()
         {
             if (SelectedComplaint != null)
             {
-                if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints))
-                {
-                    MessageBox.Show("Brak uprawnień do edycji reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                // Open the edit window, passing the selected complaint.
+                // Constructor for existing complaint will set IsEditMode = false by default.
+                ComplaintEditWindow viewEditWindow = new ComplaintEditWindow(SelectedComplaint, _complaintRepository, _userRepository, _permissionService, _currentUserRole);
+                viewEditWindow.ShowDialog();
 
-                ComplaintEditWindow editWindow = new ComplaintEditWindow(SelectedComplaint, _complaintRepository, _userRepository, _permissionService, _currentUserRole);
-                editWindow.ShowDialog();
-                Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false); // Odśwież listę po zamknięciu okna
+                Task.Run(async () => await LoadComplaintsAsync()).ConfigureAwait(false);
             }
             else
             {
-                MessageBox.Show("Proszę wybrać reklamację do edycji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a complaint to view/edit.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
+
+        // Remaining methods (DeleteComplaint, ChangeStatus, AssignComplaint) remain unchanged
+        // ... (paste remaining methods from your current ComplaintListViewModel) ...
 
         private async Task DeleteComplaint()
         {
             if (SelectedComplaint != null)
             {
-                if (MessageBox.Show($"Czy na pewno chcesz usunąć reklamację '{SelectedComplaint.Title}'?", "Potwierdź usunięcie", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                if (MessageBox.Show($"Are you sure you want to delete complaint '{SelectedComplaint.Title}'?", "Confirm Deletion", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
                 {
                     try
                     {
@@ -148,22 +150,22 @@ namespace ReklamacjeSystem.ViewModels
                                 Complaints.Remove(SelectedComplaint);
                             });
                             SelectedComplaint = null;
-                            MessageBox.Show("Reklamacja usunięta pomyślnie.", "Sukces");
+                            MessageBox.Show("Complaint deleted successfully.", "Success");
                         }
                         else
                         {
-                            MessageBox.Show("Brak uprawnień do usuwania reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show("No permission to delete complaints.", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"Błąd podczas usuwania reklamacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"Error deleting complaint: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
             else
             {
-                MessageBox.Show("Proszę wybrać reklamację do usunięcia.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a complaint to delete.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -175,23 +177,23 @@ namespace ReklamacjeSystem.ViewModels
                 {
                     if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.ChangeComplaintStatus))
                     {
-                        MessageBox.Show("Brak uprawnień do zmiany statusu reklamacji.", "Brak dostępu", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("No permission to change complaint status.", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
 
                     SelectedComplaint.Status = newStatus.Value;
                     await _complaintRepository.UpdateAsync(SelectedComplaint);
-                    MessageBox.Show($"Status reklamacji zmieniono na: {newStatus.Value}.", "Sukces");
+                    MessageBox.Show($"Complaint status changed to: {newStatus.Value}.", "Success");
                     await LoadComplaintsAsync();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Błąd podczas zmiany statusu: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Error changing status: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             else
             {
-                MessageBox.Show("Proszę wybrać reklamację i nowy status.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a complaint and new status.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -199,11 +201,11 @@ namespace ReklamacjeSystem.ViewModels
         {
             if (SelectedComplaint != null)
             {
-                MessageBox.Show($"Funkcjonalność przypisywania reklamacji (ID: {SelectedComplaint.Id}) zostanie zaimplementowana.", "Informacja");
+                MessageBox.Show($"Assign complaint functionality (ID: {SelectedComplaint.Id}) will be implemented.", "Information");
             }
             else
             {
-                MessageBox.Show("Proszę wybrać reklamację do przypisania.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a complaint to assign.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
     }

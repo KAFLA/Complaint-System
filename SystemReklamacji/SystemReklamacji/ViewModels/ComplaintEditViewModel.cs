@@ -2,15 +2,15 @@
 using ReklamacjeSystem.Repositories;
 using ReklamacjeSystem.Services;
 using System;
-using System.Collections.ObjectModel; // Dodaj to using
+using System.Collections.ObjectModel;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Windows; // Do MessageBox.Show
+using System.Windows;
 
 namespace ReklamacjeSystem.ViewModels
 {
-    // ViewModel dla formularza dodawania/edycji reklamacji
+    // ViewModel dla formularza dodawania/edycji/podglądu reklamacji
     public class ComplaintEditViewModel : BaseViewModel
     {
         private readonly ComplaintRepository _complaintRepository;
@@ -18,10 +18,31 @@ namespace ReklamacjeSystem.ViewModels
         private readonly PermissionService _permissionService;
         private readonly UserRole _currentUserRole;
 
-        public Complaint OriginalComplaint { get; private set; }
-        public bool IsNewComplaint { get; private set; }
+        public Complaint OriginalComplaint { get; private set; } // Oryginalny obiekt reklamacji (jeśli edycja)
+        public bool IsNewComplaint { get; private set; } // Flaga, czy to nowa reklamacja czy edycja
 
-        // Właściwości formularza
+        private bool _isEditMode;
+        // Właściwość kontrolująca, czy formularz jest w trybie edycji (true) czy podglądu (false)
+        public bool IsEditMode
+        {
+            get => _isEditMode;
+            set
+            {
+                _isEditMode = value;
+                OnPropertyChanged(nameof(IsEditMode));
+                OnPropertyChanged(nameof(IsViewMode)); // Poinformuj o zmianie IsViewMode
+                OnPropertyChanged(nameof(WindowTitle)); // Zaktualizuj tytuł okna
+                OnPropertyChanged(nameof(HeaderText));  // Zaktualizuj nagłówek
+                // Bezpieczne wywołanie RaiseCanExecuteChanged (sprawdzamy, czy komendy nie są null)
+                (SaveCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                (EditCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            }
+        }
+
+        // Właściwość pomocnicza dla trybu podglądu
+        public bool IsViewMode => !IsEditMode;
+
+        // Właściwości formularza (dane reklamacji)
         private string _title;
         public string Title
         {
@@ -30,8 +51,7 @@ namespace ReklamacjeSystem.ViewModels
             {
                 _title = value;
                 OnPropertyChanged(nameof(Title));
-                // Sprawdź, czy SaveCommand jest zainicjowane przed wywołaniem RaiseCanExecuteChanged
-                (SaveCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                ((RelayCommand)SaveCommand)?.RaiseCanExecuteChanged(); // Bezpieczne wywołanie
             }
         }
 
@@ -94,31 +114,44 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
+        // Dynamiczny tytuł okna (zależy od trybu i czy to nowa reklamacja)
+        public string WindowTitle => IsNewComplaint ? "Dodaj Nową Reklamację" : (IsEditMode ? $"Edytuj Reklamację: {OriginalComplaint?.Title}" : $"Podgląd Reklamacji: {OriginalComplaint?.Title}");
+
+        // Dynamiczny nagłówek w oknie
+        public string HeaderText => IsNewComplaint ? "Dodaj Nową Reklamację" : (IsEditMode ? $"Edytuj Reklamację (ID: {OriginalComplaint?.Id})" : $"Szczegóły Reklamacji (ID: {OriginalComplaint?.Id})");
+
+
+        // Komendy
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
-        public Action CloseAction { get; set; }
+        public ICommand EditCommand { get; } // Komenda do przełączania w tryb edycji
+        public Action CloseAction { get; set; } // Akcja do zamknięcia okna
 
-        // ***** NOWO DODANY BEZPARAMETROWY KONSTRUKTOR DLA DESIGNERA I DOMYŚLNEGO ŁADOWANIA *****
+        // Domyślny konstruktor dla design-time (Visual Studio Designer)
         public ComplaintEditViewModel()
         {
-            // Inicjalizacja komend, aby uniknąć NullReferenceException w czasie projektowania
+            // ***** Poczatek inicjalizacji komend w konstruktorze domyślnym *****
+            // Zapewnienie, że komendy są zainicjalizowane przed próbą wywołania RaiseCanExecuteChanged
+            _permissionService = new PermissionService(); // Inicjalizacja dla designera, aby uniknąć null
+            _currentUserRole = UserRole.Admin; // Domyślna rola dla designera preview
+
             SaveCommand = new RelayCommand(async obj => await SaveComplaint(), obj => CanSaveComplaint());
             CancelCommand = new RelayCommand(obj => Cancel());
+            EditCommand = new RelayCommand(obj => IsEditMode = true, obj => IsViewMode && _permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints));
+            // ***** Koniec inicjalizacji komend w konstruktorze domyślnym *****
 
-            // Ustaw wartości domyślne, aby projektant XAML widział coś sensownego
+            // Ustawienie domyślnych wartości dla podglądu w designerze
             Title = "Nowa Reklamacja (podgląd)";
             Description = "Opis podglądu";
             Status = ComplaintStatus.New;
             Priority = ComplaintPriority.Medium;
-            AvailableUsers = new ObservableCollection<User>(); // Pusta lista użytkowników dla podglądu
+            AvailableUsers = new ObservableCollection<User>();
             StatusMessage = "Wypełnij formularz.";
+            IsNewComplaint = true; // Dla designera domyślnie jako 'nowa'
+            IsEditMode = true; // Dla designera domyślnie w trybie edycji, żeby widział pola
 
-            // Repozytoria i serwisy będą null, jeśli ten konstruktor jest używany przez designera,
-            // ale to jest akceptowalne dla celów projektowania.
             _complaintRepository = null;
             _userRepository = null;
-            _permissionService = null;
-            _currentUserRole = UserRole.Employee; // Domyślna rola dla podglądu
         }
 
 
@@ -129,29 +162,35 @@ namespace ReklamacjeSystem.ViewModels
             _userRepository = userRepository;
             _permissionService = permissionService;
             _currentUserRole = currentUserRole;
+
+            // ***** Poczatek inicjalizacji komend w konstruktorze runtime *****
+            SaveCommand = new RelayCommand(async obj => await SaveComplaint(), obj => CanSaveComplaint());
+            CancelCommand = new RelayCommand(obj => Cancel());
+            EditCommand = new RelayCommand(obj => IsEditMode = true, obj => IsViewMode && _permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints));
+            // ***** Koniec inicjalizacji komend w konstruktorze runtime *****
+
             IsNewComplaint = true;
+            IsEditMode = true; // Nowa reklamacja zawsze zaczyna się w trybie edycji
 
             Title = string.Empty;
             Description = string.Empty;
             Status = ComplaintStatus.New;
             Priority = ComplaintPriority.Medium;
 
-            SaveCommand = new RelayCommand(async obj => await SaveComplaint(), obj => CanSaveComplaint());
-            CancelCommand = new RelayCommand(obj => Cancel());
-
-            // Ładuj użytkowników tylko jeśli repozytorium jest dostępne
+            // Asynchroniczne ładowanie dostępnych użytkowników
             if (_userRepository != null)
             {
-                Task.Run(async () => await LoadAvailableUsersAsync());
+                Task.Run(async () => await LoadAvailableUsersAsync()).ConfigureAwait(false);
             }
         }
 
-        // Konstruktor dla edycji istniejącej reklamacji (używany w czasie działania aplikacji)
+        // Konstruktor dla edycji/podglądu istniejącej reklamacji (używany w czasie działania aplikacji)
         public ComplaintEditViewModel(Complaint complaint, ComplaintRepository complaintRepository, UserRepository userRepository, PermissionService permissionService, UserRole currentUserRole)
             : this(complaintRepository, userRepository, permissionService, currentUserRole) // Wywołaj konstruktor dla nowej reklamacji, aby zainicjować repozytoria i komendy
         {
             OriginalComplaint = complaint;
             IsNewComplaint = false;
+            IsEditMode = false; // Istniejąca reklamacja zaczyna w trybie podglądu domyślnie
 
             Title = complaint.Title;
             Description = complaint.Description;
@@ -160,6 +199,7 @@ namespace ReklamacjeSystem.ViewModels
             AssignedUser = complaint.User; // Powinno być już załadowane z ComplaintListViewModel
         }
 
+        // Ładowanie listy dostępnych użytkowników do przypisania
         private async Task LoadAvailableUsersAsync()
         {
             if (_userRepository != null)
@@ -173,6 +213,7 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
+        // Logika zapisu reklamacji
         private async Task SaveComplaint()
         {
             if (!CanSaveComplaint())
@@ -181,7 +222,7 @@ namespace ReklamacjeSystem.ViewModels
                 return;
             }
 
-            // Sprawdź, czy repozytoria są zainicjalizowane (nie null z domyślnego konstruktora)
+            // Sprawdzenie, czy repozytoria i serwisy są zainicjalizowane (nie null z konstruktora design-time)
             if (_complaintRepository == null || _permissionService == null)
             {
                 MessageBox.Show("Błąd wewnętrzny: Serwisy danych nie są zainicjalizowane. Używasz wersji deweloperskiej ViewModelu.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -192,6 +233,7 @@ namespace ReklamacjeSystem.ViewModels
             {
                 if (IsNewComplaint)
                 {
+                    // Sprawdzenie uprawnień do tworzenia reklamacji
                     if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.CreateComplaint))
                     {
                         StatusMessage = "Brak uprawnień do dodawania reklamacji.";
@@ -203,16 +245,20 @@ namespace ReklamacjeSystem.ViewModels
                     {
                         Title = Title,
                         Description = Description,
-                        Status = ComplaintStatus.New,
+                        Status = ComplaintStatus.New, // Nowa reklamacja zawsze zaczyna się ze statusem "New"
                         Priority = Priority,
                         CreatedAt = DateTime.Now,
-                        UserId = AssignedUser?.Id
+                        UserId = AssignedUser?.Id // Przypisany użytkownik
                     };
                     await _complaintRepository.AddAsync(newComplaint);
                     StatusMessage = "Reklamacja dodana pomyślnie!";
+                    IsNewComplaint = false; // Po zapisie już nie jest nową reklamacją
+                    OriginalComplaint = newComplaint; // Ustaw oryginalną reklamację
+                    IsEditMode = false; // Przełącz w tryb podglądu po dodaniu
                 }
                 else
                 {
+                    // Sprawdzenie uprawnień do edycji reklamacji
                     if (!_permissionService.HasPermission(_currentUserRole, PermissionAction.EditComplaints))
                     {
                         StatusMessage = "Brak uprawnień do edycji reklamacji.";
@@ -220,6 +266,7 @@ namespace ReklamacjeSystem.ViewModels
                         return;
                     }
 
+                    // Aktualizacja oryginalnego obiektu reklamacji danymi z formularza
                     OriginalComplaint.Title = Title;
                     OriginalComplaint.Description = Description;
                     OriginalComplaint.Status = Status;
@@ -228,8 +275,8 @@ namespace ReklamacjeSystem.ViewModels
 
                     await _complaintRepository.UpdateAsync(OriginalComplaint);
                     StatusMessage = "Reklamacja zaktualizowana pomyślnie!";
+                    IsEditMode = false; // Przełącz w tryb podglądu po edycji
                 }
-                CloseAction?.Invoke();
             }
             catch (Exception ex)
             {
@@ -238,14 +285,32 @@ namespace ReklamacjeSystem.ViewModels
             }
         }
 
+        // Warunek wykonania komendy SaveCommand
         private bool CanSaveComplaint()
         {
-            return !string.IsNullOrWhiteSpace(Title);
+            return IsEditMode && !string.IsNullOrWhiteSpace(Title); // Zapisuj tylko w trybie edycji i gdy tytuł nie jest pusty
         }
 
+        // Logika anulowania
         private void Cancel()
         {
-            CloseAction?.Invoke();
+            // Jeśli to nowa reklamacja, po prostu zamknij okno.
+            // Jeśli to edycja, przywróć oryginalne wartości i przejdź w tryb podglądu.
+            if (IsNewComplaint)
+            {
+                CloseAction?.Invoke();
+            }
+            else
+            {
+                // Przywróć oryginalne dane (opcjonalnie, jeśli chcesz, aby użytkownik widział stare dane po anulowaniu edycji)
+                Title = OriginalComplaint.Title;
+                Description = OriginalComplaint.Description;
+                Status = OriginalComplaint.Status;
+                Priority = OriginalComplaint.Priority;
+                AssignedUser = OriginalComplaint.User; // Przypisany użytkownik
+
+                IsEditMode = false; // Wróć do trybu podglądu
+            }
         }
     }
 }

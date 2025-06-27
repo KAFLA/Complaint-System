@@ -3,17 +3,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:ReklamacjeSystem"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:views="clr-namespace:ReklamacjeSystem.Views" 
              StartupUri="Views/LoginWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- Wczytaj domyślny temat Material Design (Jasny, z fioletowym głównym kolorem i limonkowym wtórnym) -->
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
-
-                <!-- Wczytaj podstawowe zasoby i style kontrolne Material Design -->
-
-
+                
+          
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- GLOBALNY KONWERTER DLA WIDOCZNOŚCI -->
+            <views:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/> <!-- MUSI BYĆ TUTAJ -->
 
             <!-- Globalne style dla przycisków -->
             <Style TargetType="Button">
@@ -94,7 +96,7 @@
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="FontSize" Value="14"/>
             </Style>
-
+            
             <!-- Globalny styl dla TextBlock komunikatów (np. statusu) -->
             <Style x:Key="StatusMessageStyle" TargetType="TextBlock">
                 <Setter Property="Margin" Value="0,10,0,0"/>

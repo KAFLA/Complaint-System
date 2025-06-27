@@ -8,7 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
-        <!-- Styl dla DataGrid (możesz użyć globalnego stylu, jeśli go zdefiniowałeś) -->
+        <!-- Styl dla DataGrid -->
         <Style TargetType="DataGrid">
             <Setter Property="AutoGenerateColumns" Value="False"/>
             <Setter Property="CanUserAddRows" Value="False"/>
@@ -21,6 +21,9 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="#DCDCDC"/>
             <Setter Property="Background" Value="White"/>
+            <!-- Scrollbary -->
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Visible"/>
             <Setter Property="ColumnHeaderStyle">
                 <Setter.Value>
                     <Style TargetType="DataGridColumnHeader">
@@ -61,6 +64,7 @@
                         <Setter Property="BorderThickness" Value="0"/>
                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                         <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
                     </Style>
                 </Setter.Value>
             </Setter>
@@ -79,14 +83,16 @@
 
         <!-- DataGrid dla rozwiązań -->
         <DataGrid Grid.Row="1" ItemsSource="{Binding Solutions}" 
-                  SelectedItem="{Binding SelectedSolution, Mode=TwoWay}">
+                  SelectedItem="{Binding SelectedSolution, Mode=TwoWay}"
+                  ScrollViewer.VerticalScrollBarVisibility="Auto"
+                  ScrollViewer.HorizontalScrollBarVisibility="Visible">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="*"/>
-                <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="2*"/>
+                <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="250"/>
+                <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="350"/>
                 <DataGridTextColumn Header="Kategoria" Binding="{Binding Category}" Width="150"/>
                 <DataGridTextColumn Header="Utworzono" Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="150"/>
-                <DataGridTemplateColumn Header="Akcje" Width="Auto">
+                <DataGridTemplateColumn Header="Akcje" Width="180">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
