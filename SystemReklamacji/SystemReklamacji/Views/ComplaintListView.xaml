@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ReklamacjeSystem.Views.ComplaintListView"
+﻿<UserControl x:Class="ReklamacjeSystem.Views.ComplaintListView" 
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -9,8 +9,22 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <!-- DataGrid Style -->
     <UserControl.Resources>
+        <!-- Styl przycisków -->
+        <Style x:Key="UniformButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="MinWidth" Value="100"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+        </Style>
+
+        <!-- Konwerter koloru statusu -->
+        <local:ComplaintStatusToColorConverter x:Key="StatusToColorConverter"/>
+
+        <!-- Styl DataGrid (jeśli używasz) -->
         <Style TargetType="DataGrid">
             <Setter Property="AutoGenerateColumns" Value="False"/>
             <Setter Property="CanUserAddRows" Value="False"/>
@@ -69,9 +83,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <!-- Converter for status color -->
-        <local:ComplaintStatusToColorConverter x:Key="StatusToColorConverter"/>
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -81,53 +92,75 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- View Title -->
+        <!-- Tytuł -->
         <TextBlock Grid.Row="0" Text="Complaint List" FontSize="24" FontWeight="Bold" Margin="0,0,0,15" Foreground="#333333"/>
 
-        <!-- DataGrid for complaints -->
-        <DataGrid Grid.Row="1" 
-                  ItemsSource="{Binding Complaints}" 
-                  SelectedItem="{Binding SelectedComplaint, Mode=TwoWay}"
-                  AutoGenerateColumns="False"
-                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  ScrollViewer.HorizontalScrollBarVisibility="Visible">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
-                <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="300"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="100"/>
-                <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="150"/>
-                <DataGridTextColumn Header="Assigned To" Binding="{Binding User.Username}" Width="150"/>
-                <DataGridTemplateColumn Header="Actions" Width="180">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="View/Edit" 
-                                        Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ViewEditComplaintCommand}" 
-                                        Style="{StaticResource SmallActionButton}" Background="#007ACC" Margin="5,0"/>
-                                <Button Content="Delete" 
-                                        Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteComplaintCommand}" 
-                                        Style="{StaticResource SmallActionButton}" Background="#E74C3C" Margin="5,0"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- DataGrid z przewijaniem -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <DataGrid ItemsSource="{Binding Complaints}" 
+                      SelectedItem="{Binding SelectedComplaint, Mode=TwoWay}"
+                      AutoGenerateColumns="False"
+                      ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      >
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
+                    <DataGridTextColumn Header="Title" Binding="{Binding Title}" Width="300"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="120">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="100"/>
+                    <DataGridTextColumn Header="Created" Binding="{Binding CreatedAt, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="150"/>
+                    <DataGridTextColumn Header="Assigned To" Binding="{Binding User.Username}" Width="150"/>
+                    <DataGridTemplateColumn Header="Actions" Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="View/Edit" 
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.ViewEditComplaintCommand}" 
+                                            Background="#007ACC"
+                                            Style="{StaticResource UniformButtonStyle}" 
+                                            Margin="5,0"/>
+                                    <Button Content="Delete" 
+                                            Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteComplaintCommand}" 
+                                            Background="#E74C3C"
+                                            Style="{StaticResource UniformButtonStyle}" 
+                                            Margin="5,0"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </ScrollViewer>
 
-        <!-- Action Buttons Panel -->
+        <!-- Dolny panel przycisków -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Add Complaint" Command="{Binding AddComplaintCommand}" Background="#28A745"/>
-            <Button Content="Change Status" Command="{Binding ChangeStatusCommand}" CommandParameter="{x:Static models:ComplaintStatus.InProgress}" Background="#FFC107" Margin="10,0,0,0"/>
-            <Button Content="Assign" Command="{Binding AssignComplaintCommand}" Background="#17A2B8" Margin="10,0,0,0"/>
-            <Button Content="Refresh" Command="{Binding LoadComplaintsCommand}" Background="#6C757D" Margin="10,0,0,0"/>
+            <Button Content="Add Complaint" 
+                    Command="{Binding AddComplaintCommand}" 
+                    Background="#28A745" 
+                    Style="{StaticResource UniformButtonStyle}"/>
+            <Button Content="Change Status" 
+                    Command="{Binding ChangeStatusCommand}" 
+                    CommandParameter="{x:Static models:ComplaintStatus.InProgress}" 
+                    Background="#FFC107" 
+                    Style="{StaticResource UniformButtonStyle}" 
+                    Margin="10,0,0,0"/>
+            <Button Content="Assign" 
+                    Command="{Binding AssignComplaintCommand}" 
+                    Background="#17A2B8" 
+                    Style="{StaticResource UniformButtonStyle}" 
+                    Margin="10,0,0,0"/>
+            <Button Content="Refresh" 
+                    Command="{Binding LoadComplaintsCommand}" 
+                    Background="#6C757D" 
+                    Style="{StaticResource UniformButtonStyle}" 
+                    Margin="10,0,0,0"/>
         </StackPanel>
     </Grid>
 </UserControl>

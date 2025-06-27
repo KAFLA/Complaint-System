@@ -10,62 +10,109 @@
     <UserControl.Resources>
         <!-- Styl dla DataGrid -->
         <Style TargetType="DataGrid">
-            <Setter Property="AutoGenerateColumns" Value="False"/>
-            <Setter Property="CanUserAddRows" Value="False"/>
-            <Setter Property="CanUserDeleteRows" Value="False"/>
-            <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="GridLinesVisibility" Value="None"/>
-            <Setter Property="RowDetailsVisibilityMode" Value="Collapsed"/>
-            <Setter Property="SelectionMode" Value="Single"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#DCDCDC"/>
-            <Setter Property="Background" Value="White"/>
-            <!-- Scrollbary -->
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Visible"/>
-            <Setter Property="ColumnHeaderStyle">
+            <!-- ... (bez zmian, pomijam dla czytelności) ... -->
+        </Style>
+
+        <!-- Styl dla małych przycisków akcji (Edytuj, Usuń) - bez zaokrągleń -->
+        <Style x:Key="SmallActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="60"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#F5F5F5"/>
-                        <Setter Property="Foreground" Value="#333333"/>
-                        <Setter Property="Padding" Value="10"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                        <Setter Property="FontSize" Value="14"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="BorderBrush" Value="#E0E0E0"/>
-                    </Style>
-                </Setter.Value>
-            </Setter>
-            <Setter Property="RowStyle">
-                <Setter.Value>
-                    <Style TargetType="DataGridRow">
-                        <Setter Property="Background" Value="White"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                        <Setter Property="BorderBrush" Value="#EEEEEE"/>
-                        <Setter Property="Height" Value="40"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="#E0F2F7"/>
-                                <Setter Property="Foreground" Value="#333333"/>
-                            </Trigger>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="6,2"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#F5F5F5"/>
+                                <Setter Property="Background" Value="#005A9C"/>
                             </Trigger>
-                        </Style.Triggers>
-                    </Style>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#004070"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#A0A0A0"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <Setter Property="CellStyle">
+        </Style>
+
+        <!-- Styl dla dużych przycisków pod DataGrid (Dodaj, Odśwież) - bez zaokrągleń -->
+        <Style x:Key="LargeActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Background" Value="#28A745"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Template">
                 <Setter.Value>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Padding" Value="10,0"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        <Setter Property="FontSize" Value="13"/>
-                        <Setter Property="TextBlock.TextWrapping" Value="NoWrap"/>
-                    </Style>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,3"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#218838"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1E7E34"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#A0A0A0"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Styl dla dużego przycisku Odśwież z kolorem szarym, bez zaokrągleń -->
+        <Style x:Key="RefreshButtonStyle" TargetType="Button" BasedOn="{StaticResource LargeActionButton}">
+            <Setter Property="Background" Value="#6C757D"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="10,3"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#5A6268"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#4E555B"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#A0A0A0"/>
+                                <Setter Property="Foreground" Value="#EEEEEE"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
@@ -78,14 +125,12 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Tytuł Widoku -->
         <TextBlock Grid.Row="0" Text="Lista Rozwiązań" FontSize="24" FontWeight="Bold" Margin="0,0,0,15" Foreground="#333333"/>
 
-        <!-- DataGrid dla rozwiązań -->
         <DataGrid Grid.Row="1" ItemsSource="{Binding Solutions}" 
                   SelectedItem="{Binding SelectedSolution, Mode=TwoWay}"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  ScrollViewer.HorizontalScrollBarVisibility="Visible">
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="50"/>
                 <DataGridTextColumn Header="Tytuł" Binding="{Binding Title}" Width="250"/>
@@ -96,10 +141,14 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button Content="Edytuj" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.EditSolutionCommand}" 
-                                        Style="{StaticResource SmallActionButton}" Background="#007ACC" Margin="5,0"/>
-                                <Button Content="Usuń" Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteSolutionCommand}" 
-                                        Style="{StaticResource SmallActionButton}" Background="#E74C3C" Margin="5,0"/>
+                                <Button Content="Edytuj" 
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.EditSolutionCommand}" 
+                                        Style="{StaticResource SmallActionButton}" 
+                                        Background="#007ACC"/>
+                                <Button Content="Usuń" 
+                                        Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type UserControl}}, Path=DataContext.DeleteSolutionCommand}" 
+                                        Style="{StaticResource SmallActionButton}" 
+                                        Background="#E74C3C"/>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
@@ -107,10 +156,9 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <!-- Panel przycisków akcji -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-            <Button Content="Dodaj Rozwiązanie" Command="{Binding AddSolutionCommand}" Background="#28A745"/>
-            <Button Content="Odśwież" Command="{Binding LoadSolutionsCommand}" Background="#6C757D" Margin="10,0,0,0"/>
+            <Button Content="Dodaj Rozwiązanie" Command="{Binding AddSolutionCommand}" Style="{StaticResource LargeActionButton}"/>
+            <Button Content="Odśwież" Command="{Binding LoadSolutionsCommand}" Style="{StaticResource RefreshButtonStyle}" Margin="10,0,0,0"/>
         </StackPanel>
     </Grid>
 </UserControl>

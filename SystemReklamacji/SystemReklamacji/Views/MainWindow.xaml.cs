@@ -1,28 +1,70 @@
 ﻿using ReklamacjeSystem.Models;
 using ReklamacjeSystem.ViewModels;
 using System.Windows;
+using System.IO;
+using System.Xml;
 
 namespace ReklamacjeSystem.Views
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        // Konstruktor przyjmujący zalogowanego użytkownika
         public MainWindow(User loggedInUser)
         {
             InitializeComponent();
 
-            // Konfiguracja stringa połączenia do bazy danych MySQL
-            // WAŻNE: ZMIEŃ 'twoje_haslo' NA PRAWDZIWE HASŁO DO UŻYTKOWNIKA BAZY DANYCH!
-            string connectionString = "server=localhost;port=3306;database=reklamacje_db;user=kaflisz;password=zaq1@WSX;SslMode=None;";
-            // Jeśli używasz użytkownika 'reklamacje_user' stworzonego skryptem SQL, hasło to 'zaq1@WSX':
-            // string connectionString = "server=localhost;port=3306;database=reklamacje_db;user=reklamacje_user;password=zaq1@WSX;SslMode=None;"; 
+            string connectionString = string.Empty;
 
-            // Ustawienie DataContext dla tego okna na nową instancję MainViewModel
-            // Przekazujemy zalogowanego użytkownika i connectionString
+            try
+            {
+                string configPath = Path.Combine(Directory.GetCurrentDirectory(), "App.config");
+
+                if (!File.Exists(configPath))
+                {
+                    MessageBox.Show("Nie znaleziono pliku App.config w katalogu aplikacji.", "Błąd Konfiguracji", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Application.Current.Shutdown();
+                    return;
+                }
+
+                XmlDocument doc = new XmlDocument();
+                doc.Load(configPath);
+
+                XmlNode node = doc.SelectSingleNode("/configuration/connectionStrings/add[@name='ReklamacjeDbConnection']");
+                if (node != null && node.Attributes != null)
+                {
+                    connectionString = node.Attributes["connectionString"]?.Value;
+
+                    if (string.IsNullOrWhiteSpace(connectionString))
+                    {
+                        MessageBox.Show("Błąd: connectionString w App.config jest pusty.", "Błąd Konfiguracji", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Application.Current.Shutdown();
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Nie znaleziono wpisu 'ReklamacjeDbConnection' w pliku App.config.", "Błąd Konfiguracji", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Application.Current.Shutdown();
+                    return;
+                }
+            }
+            catch (XmlException ex)
+            {
+                MessageBox.Show($"Błąd XML w pliku App.config: {ex.Message}", "Błąd Konfiguracji", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Wystąpił nieoczekiwany błąd podczas ładowania App.config: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Shutdown();
+                return;
+            }
+
             this.DataContext = new MainViewModel(loggedInUser, connectionString);
+
+            // Przekazanie delegatu do zamknięcia okna do ViewModelu
+            var vm = (MainViewModel)this.DataContext;
+            vm.CloseAction = new System.Action(() => this.Close());
         }
     }
 }
