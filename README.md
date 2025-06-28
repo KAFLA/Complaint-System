@@ -246,7 +246,7 @@ dotnet test
 ```
 
 ### Diagram klas UML
-```markdown
+```mermaid
 classDiagram
     %% Modele danych
     class User {
