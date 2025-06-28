@@ -245,6 +245,188 @@ dotnet build
 dotnet test
 ```
 
+### Diagram klas UML
+```markdown
+classDiagram
+    %% Modele danych
+    class User {
+        +int Id
+        +string Username
+        +string Email
+        +string PasswordHash
+        +UserRole Role
+        +DateTime CreatedAt
+    }
+
+    class Complaint {
+        +int Id
+        +string Title
+        +string Description
+        +ComplaintStatus Status
+        +ComplaintPriority Priority
+        +DateTime CreatedAt
+        +int UserId
+        +User User
+    }
+
+    class Solution {
+        +int Id
+        +string Title
+        +string Description
+        +string Category
+        +DateTime CreatedAt
+    }
+
+    %% Enumy
+    class UserRole {
+        <<enumeration>>
+        Admin
+        Manager
+        Employee
+    }
+
+    class ComplaintStatus {
+        <<enumeration>>
+        New
+        InProgress
+        Resolved
+        Closed
+    }
+
+    class ComplaintPriority {
+        <<enumeration>>
+        Low
+        Medium
+        High
+        Critical
+    }
+
+    %% Interfejs Repository
+    class IRepository {
+        <<interface>>
+        +GetAllAsync()
+        +GetByIdAsync(int id)
+        +AddAsync(entity)
+        +UpdateAsync(entity)
+        +DeleteAsync(int id)
+    }
+
+    %% Klasa bazowa Repository
+    class BaseRepository {
+        <<abstract>>
+        #string connectionString
+        #string tableName
+        +GetAllAsync()
+        +GetByIdAsync(int id)
+        +AddAsync(entity)
+        +UpdateAsync(entity)
+        +DeleteAsync(int id)
+        +MapToEntity(reader)*
+    }
+
+    %% Konkretne repozytoria
+    class UserRepository {
+        +MapToEntity(reader) User
+    }
+
+    class ComplaintRepository {
+        +MapToEntity(reader) Complaint
+    }
+
+    class SolutionRepository {
+        +MapToEntity(reader) Solution
+        +GetSolutionsByCategoryAsync(category)
+        +SearchSolutionsAsync(searchTerm)
+    }
+
+    %% Serwisy
+    class IAuthService {
+        <<interface>>
+        +Register(username, email, password, role)
+        +Login(username, password)
+    }
+
+    class AuthService {
+        -UserRepository userRepository
+        +Register(username, email, password, role)
+        +Login(username, password)
+    }
+
+    class ComplaintService {
+        -ComplaintRepository complaintRepository
+        -UserRepository userRepository
+        +GetAllComplaints()
+        +AddComplaint(complaint)
+        +UpdateComplaint(complaint)
+        +ChangeComplaintStatus(id, status, role)
+        +AssignComplaintToUser(complaintId, userId)
+    }
+
+    class PermissionService {
+        +HasPermission(role, action) bool
+        +CanDeleteComplaint(role) bool
+        +CanEditUsers(role) bool
+    }
+
+    %% ViewModels
+    class BaseViewModel {
+        <<abstract>>
+        +PropertyChanged
+        #OnPropertyChanged(propertyName)
+    }
+
+    class LoginViewModel {
+        -IAuthService authService
+        +string Username
+        +SecureString Password
+        +ICommand LoginCommand
+        +ICommand RegisterCommand
+    }
+
+    class MainViewModel {
+        +User CurrentUser
+        +BaseViewModel CurrentViewModel
+        +ICommand ShowComplaintsCommand
+        +ICommand ShowUsersCommand
+        +ICommand ShowSolutionsCommand
+    }
+
+    class ComplaintListViewModel {
+        -ComplaintRepository complaintRepository
+        -UserRepository userRepository
+        -PermissionService permissionService
+        +ObservableCollection Complaints
+        +Complaint SelectedComplaint
+        +ICommand AddComplaintCommand
+        +ICommand ViewEditComplaintCommand
+        +ICommand DeleteComplaintCommand
+    }
+
+    %% Relacje dziedziczenia
+    IRepository <|.. BaseRepository : implements
+    BaseRepository <|-- UserRepository : extends
+    BaseRepository <|-- ComplaintRepository : extends
+    BaseRepository <|-- SolutionRepository : extends
+    IAuthService <|.. AuthService : implements
+
+    BaseViewModel <|-- LoginViewModel : extends
+    BaseViewModel <|-- MainViewModel : extends
+    BaseViewModel <|-- ComplaintListViewModel : extends
+
+    %% Relacje zależności
+    AuthService --> UserRepository : uses
+    ComplaintService --> ComplaintRepository : uses
+    ComplaintService --> UserRepository : uses
+    LoginViewModel --> IAuthService : uses
+    ComplaintListViewModel --> ComplaintRepository : uses
+    ComplaintListViewModel --> UserRepository : uses
+    ComplaintListViewModel --> PermissionService : uses
+    MainViewModel --> PermissionService : uses
+
+    %% Asocjacje między modelami
+    User --> Complaint : assigned_to
+    Complaint --> User : belongs_to
+```
 ### 🧪 Testowanie
 - **Unit tests** - xUnit framework
 - **Integration tests** - testowanie z bazą danych
@@ -255,20 +437,3 @@ dotnet test
 - **SOLID principles** - zasady projektowania obiektowego
 - **Comment guidelines** - dokumentacja w XML comments
 
----
-
-## 📞 Wsparcie
-
-**🐛 Zgłaszanie błędów:** [Issues](https://github.com/twoja-nazwa/reklamacje-system/issues)  
-**💡 Propozycje funkcji:** [Discussions](https://github.com/twoja-nazwa/reklamacje-system/discussions)  
-**📧 Kontakt:** reklamacje-system@example.com
-
----
-
-<div align="center">
-
-**⭐ Jeśli projekt Ci się podoba, zostaw gwiazdkę! ⭐**
-
-Zbudowane z ❤️ dla efektywnego zarządzania reklamacjami
-
-</div>
