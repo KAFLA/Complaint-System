@@ -57,8 +57,8 @@ System Obsługi Reklamacji to aplikacja desktopowa stworzona w technologii WPF (
 
 1. **Pobierz kod źródłowy**:
    ```bash
-   git clone https://github.com/your-repo/reklamacje-system.git
-   cd reklamacje-system
+   https://github.com/KAFLA/Complaint-System.git
+   cd Complaint-System
    ```
 
 2. **Przywróć pakiety NuGet**:
@@ -70,10 +70,6 @@ System Obsługi Reklamacji to aplikacja desktopowa stworzona w technologii WPF (
    - Uruchom MySQL Server
    - Wykonaj skrypt `Example_database.sql` w MySQL
 
-4. **Skompiluj projekt**:
-   ```bash
-   dotnet build --configuration Release
-   ```
 
 ## ⚙️ Konfiguracja
 
@@ -81,18 +77,8 @@ System Obsługi Reklamacji to aplikacja desktopowa stworzona w technologii WPF (
 
 Aplikacja wymaga pliku `App.config` w katalogu głównym z konfiguracją połączenia do bazy danych. 
 
-**Plik konfiguracyjny jest tworzony przez osobny program `AppConfig.exe`.**
+**Plik konfiguracyjny jest tworzony przez osobny program `AppConfig.exe`. Program gotowy do kompliacji dołączony jest również do projektu. Po skompilowaniu aplikacji należy przrzucić ją do folderu z plikiem wykonywalnym aplikacji głównej `SystemReklamacji.exe` lub przenieść tam wygenerowany plik `App.config`**
 
-Przykładowa struktura pliku `App.config`:
-```xml
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <connectionStrings>
-    <add name="ReklamacjeDbConnection" 
-         connectionString="Server=localhost;Database=reklamacje_db;Uid=root;Pwd=password;Charset=utf8mb4;" />
-  </connectionStrings>
-</configuration>
-```
 
 ### Domyślne konta użytkowników
 
