@@ -403,7 +403,6 @@ Ten projekt jest licencjonowany na zasadach MIT License. Zobacz plik `LICENSE` d
 
 ---
 
-**Wersja**: 1.0.0  
+**Wersja**: 0.19.1 
 **Ostatnia aktualizacja**: 2025-06-28  
-**Autor**: [Twoje Imię]  
-**Kontakt**: [twoj-email@example.com]
+**Autorzy**: [Mateusz Kazuła], [Dawid Kubica]  
