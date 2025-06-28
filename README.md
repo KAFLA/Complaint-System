@@ -1,251 +1,201 @@
-# 🎯 System Obsługi Reklamacji
+# System Obsługi Reklamacji
 
-<div align="center">
+Aplikacja WPF do zarządzania reklamacjami obsługiwana przez pracowników z systemem uprawnień opartym na rolach.
 
-![.NET](https://img.shields.io/badge/.NET-8.0-blue?style=for-the-badge&logo=dotnet)
-![WPF](https://img.shields.io/badge/WPF-Windows-lightblue?style=for-the-badge&logo=windows)
-![MySQL](https://img.shields.io/badge/MySQL-Database-orange?style=for-the-badge&logo=mysql)
-![C#](https://img.shields.io/badge/C%23-Programming-purple?style=for-the-badge&logo=csharp)
+## 📋 Spis treści
 
-**Profesjonalny system do zarządzania reklamacjami klientów z zaawansowanym systemem uprawnień**
+- [Opis projektu](#opis-projektu)
+- [Funkcjonalności](#funkcjonalności)
+- [Stack technologiczny](#stack-technologiczny)
+- [Wymagania systemowe](#wymagania-systemowe)
+- [Instalacja](#instalacja)
+- [Konfiguracja](#konfiguracja)
+- [Struktura projektu](#struktura-projektu)
+- [Paradygmat obiektowy](#paradygmat-obiektowy)
+- [Diagram UML](#diagram-uml)
+- [Użytkowanie](#użytkowanie)
+- [Licencja](#licencja)
 
-[📋 Funkcjonalności](#funkcjonalności) • [🚀 Instalacja](#instalacja) • [🏗️ Architektura](#architektura) • [📸 Zrzuty ekranu](#zrzuty-ekranu)
+## 🎯 Opis projektu
 
-</div>
+System Obsługi Reklamacji to aplikacja desktopowa stworzona w technologii WPF (.NET 8.0) przeznaczona do zarządzania procesem obsługi reklamacji w przedsiębiorstwie. Aplikacja umożliwia pracownikom różnych szczebli efektywne zarządzanie zgłoszeniami, ich statusami oraz dostępem do bazy rozwiązań.
 
----
+## ✨ Funkcjonalności
 
-## 📋 Funkcjonalności
+### Główne funkcje:
+- **Zarządzanie reklamacjami**: Tworzenie, wyświetlanie, edycja i usuwanie reklamacji
+- **System statusów**: Śledzenie cyklu życia reklamacji (New → InProgress → Resolved → Closed)
+- **Przypisywanie użytkownikom**: Delegowanie odpowiedzialności za konkretne reklamacje
+- **System uprawnień**: Rozróżnienie ról (Admin, Manager, Employee) z różnymi poziomami dostępu
+- **Repozytorium rozwiązań**: Baza wiedzy do automatyzacji i wspomagania pracy pracowników
 
-### 🔐 System Użytkowników
-- **Trzy poziomy uprawnień**: Admin, Manager, Employee
-- **Bezpieczne hashowanie haseł** z wykorzystaniem BCrypt
-- **Logowanie i rejestracja** z walidacją danych
+### Dodatkowe funkcjonalności:
+- Bezpieczne uwierzytelnianie z hashowaniem haseł (BCrypt)
+- Intuicyjny interfejs użytkownika z Material Design
+- Filtrowanie i wyszukiwanie reklamacji
+- Powiadomienia o zmianach statusów
 
-### 📋 Zarządzanie Reklamacjami
-- ✅ Tworzenie nowych reklamacji
-- 📝 Edycja i podgląd szczegółów
-- 🔄 System statusów: `Nowa` → `W toku` → `Rozwiązana` → `Zamknięta`
-- 🎯 Przypisywanie reklamacji do pracowników
-- 🏷️ Priorytety: Niski, Średni, Wysoki, Krytyczny
+## 🛠 Stack technologiczny
 
-### 💡 Repozytorium Rozwiązań
-- 📚 Baza wiedzy z rozwiązaniami problemów
-- 🔍 Wyszukiwanie po kategorii i słowach kluczowych
-- ➕ Dodawanie i edycja rozwiązań
+- **Framework**: .NET 8.0
+- **UI**: WPF (Windows Presentation Foundation)
+- **Baza danych**: MySQL
+- **ORM**: Custom Repository Pattern
+- **Haszowanie haseł**: BCrypt.Net
+- **Design**: Material Design In XAML
+- **Architektura**: MVVM (Model-View-ViewModel)
 
-### 🛡️ System Uprawnień
-| Rola | Reklamacje | Użytkownicy | Rozwiązania |
-|------|------------|-------------|-------------|
-| **Admin** | Pełne uprawnienia | Pełne uprawnienia | Pełne uprawnienia |
-| **Manager** | Zarządzanie wszystkimi | Tylko edycja ról | Pełne uprawnienia |
-| **Employee** | Własne + przypisane | Brak dostępu | Tylko podgląd |
+## 📋 Wymagania systemowe
 
----
+- Windows 10/11 (x64)
+- .NET 8.0 Runtime
+- MySQL Server 8.0+
+- Minimum 4GB RAM
+- 100MB wolnego miejsca na dysku
 
-## 🚀 Instalacja
+## 🔧 Instalacja
 
-### 📋 Wymagania
-- **Windows 10/11**
-- **.NET 8.0 Runtime**
-- **MySQL Server 8.0+**
-- **Visual Studio 2022** (dla deweloperów)
+1. **Pobierz kod źródłowy**:
+   ```bash
+   git clone https://github.com/your-repo/reklamacje-system.git
+   cd reklamacje-system
+   ```
 
-### ⚡ Szybka instalacja
+2. **Przywróć pakiety NuGet**:
+   ```bash
+   dotnet restore
+   ```
 
-1. **Sklonuj repozytorium**
-```bash
-git clone https://github.com/twoja-nazwa/reklamacje-system.git
-cd reklamacje-system
+3. **Skonfiguruj bazę danych**:
+   - Uruchom MySQL Server
+   - Wykonaj skrypt `Example_database.sql` w MySQL
+
+4. **Skompiluj projekt**:
+   ```bash
+   dotnet build --configuration Release
+   ```
+
+## ⚙️ Konfiguracja
+
+### Konfiguracja bazy danych
+
+Aplikacja wymaga pliku `App.config` w katalogu głównym z konfiguracją połączenia do bazy danych. 
+
+**Plik konfiguracyjny jest tworzony przez osobny program `AppConfig.exe`.**
+
+Przykładowa struktura pliku `App.config`:
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <connectionStrings>
+    <add name="ReklamacjeDbConnection" 
+         connectionString="Server=localhost;Database=reklamacje_db;Uid=root;Pwd=password;Charset=utf8mb4;" />
+  </connectionStrings>
+</configuration>
 ```
 
-2. **Skonfiguruj bazę danych**
-```sql
--- Utwórz bazę danych
-CREATE DATABASE reklamacje_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+### Domyślne konta użytkowników
 
--- Utwórz użytkownika (opcjonalnie)
-CREATE USER 'reklamacje_user'@'localhost' IDENTIFIED BY 'zaq1@WSX';
-GRANT ALL PRIVILEGES ON reklamacje_db.* TO 'reklamacje_user'@'localhost';
-FLUSH PRIVILEGES;
-```
+Po pierwszym uruchomieniu możesz zarejestrować nowe konta lub skorzystać z domyślnych:
+- **Admin**: Pełne uprawnienia do zarządzania systemem
+- **Manager**: Zarządzanie użytkownikami i reklamacjami
+- **Employee**: Tworzenie i edycja własnych reklamacji
 
-3. **Wykonaj skrypt bazy danych**
-```sql
--- Uruchom dostarczony skrypt SQL do utworzenia tabel
--- (znajdziesz go w folderze Database/)
-```
+## 📁 Struktura projektu
 
-4. **Zaktualizuj connection string**
-```csharp
-// W plikach LoginWindow.xaml.cs i MainWindow.xaml.cs
-string connectionString = "server=localhost;port=3306;database=reklamacje_db;user=twoj_uzytkownik;password=twoje_haslo;SslMode=None;";
-```
-
-5. **Uruchom aplikację**
-```bash
-dotnet run
-```
-
----
-
-## 🏗️ Architektura
-
-### 📁 Struktura Projektu
 ```
 ReklamacjeSystem/
-├── 📂 Models/              # Modele danych (User, Complaint, Solution)
-├── 📂 Repositories/        # Warstwa dostępu do danych (Repository Pattern)
-├── 📂 Services/           # Logika biznesowa (AuthService, PermissionService)
-├── 📂 ViewModels/         # MVVM - ViewModele z logiką prezentacji
-├── 📂 Views/              # Interfejs użytkownika (WPF)
-└── 📂 Database/           # Skrypty SQL
+├── Models/                    # Modele danych
+│   ├── User.cs               # Model użytkownika
+│   ├── Complaint.cs          # Model reklamacji
+│   ├── Solution.cs           # Model rozwiązania
+│   └── IRepository.cs        # Interfejs repozytorium
+├── ViewModels/               # ViewModele (MVVM)
+│   ├── BaseViewModel.cs      # Bazowy ViewModel
+│   ├── LoginViewModel.cs     # ViewModel logowania
+│   ├── MainViewModel.cs      # Główny ViewModel
+│   ├── ComplaintListViewModel.cs
+│   └── ComplaintEditViewModel.cs
+├── Views/                    # Widoki WPF
+│   ├── LoginWindow.xaml      # Okno logowania
+│   ├── MainWindow.xaml       # Główne okno
+│   ├── ComplaintListView.xaml
+│   └── ComplaintEditWindow.xaml
+├── Repositories/             # Warstwa dostępu do danych
+│   ├── BaseRepository.cs     # Bazowe repozytorium
+│   ├── UserRepository.cs     # Repozytorium użytkowników
+│   ├── ComplaintRepository.cs
+│   └── SolutionRepository.cs
+├── Services/                 # Usługi biznesowe
+│   ├── AuthService.cs        # Uwierzytelnianie
+│   ├── PermissionService.cs  # Zarządzanie uprawnieniami
+│   └── NotificationService.cs
+└── App.xaml                  # Konfiguracja aplikacji
 ```
 
-### 🎯 Zastosowane Wzorce Projektowe
+## 🏗 Paradygmat obiektowy
 
-**🏛️ Repository Pattern**
-- Abstrakcja dostępu do danych
-- Generyczna klasa bazowa `BaseRepository<T>`
-- Implementacje dla każdej encji
+Aplikacja została zaprojektowana z zachowaniem kluczowych zasad programowania obiektowego:
 
-**🎭 MVVM (Model-View-ViewModel)**
-- Separacja logiki biznesowej od UI
-- Data binding z WPF
-- Command pattern dla akcji użytkownika
+### 🔒 Enkapsulacja
+- **Modele danych**: Właściwości z kontrolowanym dostępem (get/set)
+- **Repozytoria**: Ukrywanie szczegółów implementacji dostępu do bazy danych
+- **Usługi**: Enkapsulacja logiki biznesowej w dedykowanych klasach
 
-**🔌 Dependency Injection**
-- Luźne powiązanie między komponentami
-- Łatwiejsze testowanie
-- Elastyczna konfiguracja
-
-**🎪 Strategy Pattern**
-- System uprawnień `PermissionService`
-- Różne strategie dla różnych ról
-
-### 🗄️ Model Bazy Danych
-
-```mermaid
-erDiagram
-    Users ||--o{ Complaints : "tworzy/jest_przypisany"
-    
-    Users {
-        int Id PK
-        string Username
-        string Email
-        string PasswordHash
-        enum Role
-        datetime CreatedAt
-    }
-    
-    Complaints {
-        int Id PK
-        string Title
-        string Description
-        enum Status
-        enum Priority
-        datetime CreatedAt
-        int UserId FK
-    }
-    
-    Solutions {
-        int Id PK
-        string Title
-        string Description
-        string Category
-        datetime CreatedAt
-    }
+```csharp
+public class User
+{
+    public int Id { get; set; }
+    public string Username { get; set; }
+    private string _passwordHash; // Enkapsulowane hasło
+}
 ```
 
-### 🔧 Technologie
+### 🧬 Dziedziczenie
+- **BaseRepository<T>**: Wspólna funkcjonalność dla wszystkich repozytoriów
+- **BaseViewModel**: Implementacja INotifyPropertyChanged dla wszystkich ViewModeli
+- **Hierarchia uprawnień**: UserRole enum z różnymi poziomami dostępu
 
-| Komponent | Technologia | Opis |
-|-----------|------------|------|
-| **Backend** | .NET 8.0 | Główna platforma aplikacji |
-| **UI** | WPF + Material Design | Nowoczesny interfejs użytkownika |
-| **Database** | MySQL 8.0 | Relacyjna baza danych |
-| **ORM** | ADO.NET | Bezpośredni dostęp do bazy |
-| **Security** | BCrypt.NET | Hashowanie haseł |
-| **Pattern** | MVVM | Architektura prezentacji |
+```csharp
+public abstract class BaseRepository<T> : IRepository<T> where T : class, new()
+{
+    protected abstract T MapToEntity(MySqlDataReader reader);
+}
 
----
-
-## 📸 Zrzuty Ekranu
-
-### 🔐 Ekran Logowania
-*Elegancki interfejs z opcją rejestracji nowych użytkowników*
-
-### 📋 Lista Reklamacji
-*Przejrzysty widok z filtrowaniem i kolorowym oznaczaniem statusów*
-
-### ✏️ Edytor Reklamacji
-*Tryb podglądu/edycji z dynamicznymi uprawnieniami*
-
-### 💡 Repozytorium Rozwiązań
-*Baza wiedzy z możliwością wyszukiwania*
-
----
-
-## 🎯 Kluczowe Cechy Implementacji
-
-### 🔒 Bezpieczeństwo
-- **Hashowanie haseł** - BCrypt z salt
-- **Kontrola uprawnień** - na poziomie UI i logiki
-- **Walidacja danych** - po stronie klienta i serwera
-
-### 🚀 Wydajność
-- **Asynchroniczne operacje** - wszystkie zapytania do bazy
-- **Lazy loading** - ładowanie danych na żądanie
-- **Connection pooling** - optymalizacja połączeń MySQL
-
-### 🎨 UX/UI
-- **Material Design** - nowoczesny wygląd
-- **Responsywny design** - dopasowanie do różnych rozdzielczości
-- **Intuicyjna nawigacja** - logiczny przepływ użytkownika
-- **Real-time updates** - odświeżanie list po zmianach
-
-### 📦 Rozszerzalność
-- **Plugin architecture** - łatwe dodawanie nowych funkcji
-- **Configurable permissions** - elastyczny system ról
-- **Database migrations** - zarządzanie zmianami schematu
-
----
-
-## 🚧 Roadmapa
-
-### v2.0 - Q2 2025
-- [ ] 📊 Dashboard z wykresami i statystykami
-- [ ] 📧 System powiadomień email
-- [ ] 📱 Aplikacja mobilna (MAUI)
-- [ ] 🔍 Zaawansowane filtry i raporty
-
-### v3.0 - Q3 2025
-- [ ] 🤖 AI dla automatycznej kategoryzacji
-- [ ] 🌐 API REST dla integracji
-- [ ] 📈 Analityka i metryki wydajności
-- [ ] 🏢 Multi-tenant support
-
----
-
-## 👥 Dla Deweloperów
-
-### 🛠️ Środowisko deweloperskie
-```bash
-# Klonowanie i konfiguracja
-git clone https://github.com/twoja-nazwa/reklamacje-system.git
-cd reklamacje-system
-
-# Restore packages
-dotnet restore
-
-# Build solution
-dotnet build
-
-# Run tests
-dotnet test
+public class UserRepository : BaseRepository<User>
+{
+    protected override User MapToEntity(MySqlDataReader reader) { /* */ }
+}
 ```
 
-### Diagram klas UML
+### 🔄 Polimorfizm
+- **IRepository<T>**: Wspólny interfejs dla różnych typów repozytoriów
+- **IAuthService**: Interfejs usługi uwierzytelniania
+- **RelayCommand**: Uniwersalna implementacja ICommand
+
+```csharp
+public interface IRepository<T> where T : class
+{
+    Task<IEnumerable<T>> GetAllAsync();
+    Task<T> GetByIdAsync(int id);
+}
+```
+
+### 🎭 Abstrakcja
+- **Separation of Concerns**: Wyraźny podział na warstwy (Models, Views, ViewModels, Services)
+- **MVVM Pattern**: Separacja logiki prezentacji od logiki biznesowej
+- **Repository Pattern**: Abstrakcja dostępu do danych
+
+### 🔧 Zasady SOLID
+- **Single Responsibility**: Każda klasa ma jedną odpowiedzialność
+- **Open/Closed**: Łatwe rozszerzanie funkcjonalności przez dziedziczenie
+- **Liskov Substitution**: Klasy pochodne są kompatybilne z klasami bazowymi
+- **Interface Segregation**: Małe, wyspecjalizowane interfejsy
+- **Dependency Inversion**: Zależności od abstrakcji, nie od konkretnych implementacji
+
+## 📊 Diagram UML
+
+<!-- Tutaj zostanie umieszczony diagram UML systemu -->
 ```mermaid
 classDiagram
     %% Modele danych
@@ -427,13 +377,33 @@ classDiagram
     User --> Complaint : assigned_to
     Complaint --> User : belongs_to
 ```
-### 🧪 Testowanie
-- **Unit tests** - xUnit framework
-- **Integration tests** - testowanie z bazą danych
-- **UI tests** - White framework dla WPF
 
-### 📝 Konwencje kodu
-- **Clean Code** - czytelny i samozadokumentujący kod
-- **SOLID principles** - zasady projektowania obiektowego
-- **Comment guidelines** - dokumentacja w XML comments
+## 🚀 Użytkowanie
 
+### Pierwsze uruchomienie
+1. Uruchom `AppConfig.exe` aby skonfigurować połączenie z bazą danych
+2. Uruchom aplikację główną `ReklamacjeSystem.exe`
+3. Zarejestruj pierwsze konto administratora
+4. Zaloguj się i rozpocznij korzystanie z systemu
+
+### Podstawowe operacje
+- **Dodawanie reklamacji**: Przycisk "Add Complaint" w głównym oknie
+- **Edycja reklamacji**: Kliknij "View/Edit" przy wybranej reklamacji
+- **Zmiana statusu**: Przycisk "Change Status" lub edycja reklamacji
+- **Zarządzanie użytkownikami**: Dostępne dla ról Manager i Admin
+
+### Role użytkowników
+- **Employee**: Może tworzyć i edytować własne reklamacje, przeglądać rozwiązania
+- **Manager**: Dodatkowo może zarządzać użytkownikami i wszystkimi reklamacjami
+- **Admin**: Pełne uprawnienia do wszystkich funkcji systemu
+
+## 📄 Licencja
+
+Ten projekt jest licencjonowany na zasadach MIT License. Zobacz plik `LICENSE` dla szczegółów.
+
+---
+
+**Wersja**: 1.0.0  
+**Ostatnia aktualizacja**: 2025-06-28  
+**Autor**: [Twoje Imię]  
+**Kontakt**: [twoj-email@example.com]
