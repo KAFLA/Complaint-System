@@ -35,6 +35,20 @@ System Obsługi Reklamacji to aplikacja desktopowa stworzona w technologii WPF (
 - Filtrowanie i wyszukiwanie reklamacji
 - Powiadomienia o zmianach statusów
 
+## 📸 Zrzuty Ekranu Aplikacji:
+
+![Okno logowanie rejestracja](https://github.com/user-attachments/assets/ff5215bc-4021-4e8a-a047-967f05d848ff)
+
+![Okno listy reklamacji](https://github.com/user-attachments/assets/a5860505-d69d-4de9-9da3-d4e317e944ea)
+
+![Okno Szczegóły reklamacji](https://github.com/user-attachments/assets/71ec391e-e37b-49c9-81ba-a604efd252df)
+
+![Okno Eycja reklamacji](https://github.com/user-attachments/assets/e005fca3-8801-4d36-b63a-f6a7aaac308f)
+
+![Okno Dodaj reklamację](https://github.com/user-attachments/assets/774bb885-b32e-4b83-b63d-9510c2d49612)
+
+![Okno listy rozwiązań](https://github.com/user-attachments/assets/0e58bdc0-37da-4ce7-97d7-30837064cc11)
+
 ## 🛠 Stack technologiczny
 
 - **Framework**: .NET 8.0
